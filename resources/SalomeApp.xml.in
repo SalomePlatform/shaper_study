@@ -1,0 +1,13 @@
+<document>
+  <section name="SHAPERSTUDY">
+    <!-- Major module parameters -->
+    <parameter name="name"            value=""/>
+    <parameter name="library"         value=""/>
+    <parameter name="documentation"   value=""/>
+    <parameter name="version"         value="@SALOMESHAPERSTUDY_VERSION@"/>
+  </section>
+  <section name="resources">
+    <!-- Module resources -->
+    <parameter name="SHAPERSTUDY"         value="%SHAPERSTUDY_ROOT_DIR%/share/salome/resources/SHAPERSTUDY"/>
+  </section>
+</document>
