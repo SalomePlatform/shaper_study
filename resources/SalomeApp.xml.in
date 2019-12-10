@@ -2,7 +2,7 @@
   <section name="SHAPERSTUDY">
     <!-- Major module parameters -->
     <parameter name="name"            value=""/>
-    <parameter name="library"         value=""/>
+    <parameter name="icon"            value=""/>
     <parameter name="documentation"   value=""/>
     <parameter name="version"         value="@SALOMESHAPERSTUDY_VERSION@"/>
   </section>

@@ -58,7 +58,7 @@ def moduleName():
 # Get module's pixmap name
 ###
 def modulePixmap():
-    return "SHAPERSTUDY_small.png"
+    return "shaper.png"
 
 ###
 # Get verbose level
