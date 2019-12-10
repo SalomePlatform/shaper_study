@@ -30,7 +30,7 @@
 class StudyData_Object
 {
 public:
-  StudyData_Object(SALOMEDS::TMPFile_var theFile);
+  Standard_EXPORT StudyData_Object(const std::string theFile);
 
 
 private:

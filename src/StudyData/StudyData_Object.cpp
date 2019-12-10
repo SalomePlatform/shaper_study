@@ -25,12 +25,9 @@
 #include <BRep_Builder.hxx>
 #include <BRepTools.hxx>
 
-StudyData_Object::StudyData_Object(SALOMEDS::TMPFile_var theFile)
+StudyData_Object::StudyData_Object(const std::string theFile)
 {
-  int sizebuf = theFile->length();
-  char* aBuf;
-  aBuf = (char*)&theFile[0];
-  std::istringstream streamBrep(aBuf);
+  std::istringstream streamBrep(theFile.c_str());
   BRep_Builder aBuilder;
   BRepTools::Read(myShape, streamBrep, aBuilder);
 }

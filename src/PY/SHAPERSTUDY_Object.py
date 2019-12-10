@@ -129,4 +129,10 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
         """
         return ;
 
+    def SetShapeByStream(self, theStream):
+        """
+        Sets geometric shape content of the object as a byte stream in BRep format
+        """
+        return ;
+
     pass

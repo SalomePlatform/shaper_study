@@ -25,6 +25,8 @@ import SALOME_ComponentPy
 import SALOME_DriverPy
 import SALOMEDS
 from SHAPERSTUDY_utils import findOrCreateComponent, moduleName, getStudy, getORB
+import salome
+import SHAPERSTUDY_Object
 
 __entry2IOR__ = {}
 
@@ -51,11 +53,11 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         #
         pass
 
-    def publish( self, theShaperObj ):
+    def CreateShape( self ):
         """
-        Publish GEOM_Object corresponding to a given SHAPER object
+        Creates a SHAPERSTUDY_Object to interact with SHAPER
         """
-        return SHAPERSTUDY_Object()
+        return SHAPERSTUDY_Object.SHAPERSTUDY_Object()._this()
 
     def AddInStudy( self, theObject, theName, theFather ):
         """
@@ -63,8 +65,17 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         if theFather is not NULL the object is placed under theFather's SObject.
         Returns a SObject where theObject is placed
         """
-        so = SALOMEDS.SALOMEDS_SObject()
-        return so
+        aStudy = getStudy()
+        aBuilder = aStudy.NewBuilder()
+        if not theFather:
+          theFather = findOrCreateComponent()
+        aResultSO = aBuilder.NewObject(theFather);
+        aResultSO.SetAttrString("AttributeName", theName)
+        if theObject:
+          anIOR = salome.orb.object_to_string(theObject)
+          aResultSO.SetAttrString("AttributeIOR", anIOR)
+
+        return aResultSO
 
     def AddSubShape( theMainShape, theIndices ):
         """
@@ -124,7 +135,8 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         Parameters:
             theStudyEntry is an entry of the Object in the study
         """
-        return ""
+        print("My Test")
+        return "test"
 
 
     def Save( self, component, URL, isMultiFile ):
@@ -265,27 +277,3 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         Adds to the group all the given shapes. No errors, if some shapes are already included.
         """
         return GetIGroupOperations().UnionList( theGroup, theSubShapes )
-
-    def addToStudy( self, aShape, aName ):
-        """
-        Publish in study aShape with name aName
-        """
-        try:
-            so = self.AddInStudy(aShape, aName, None )
-            if so and aName: so.SetAttrString("AttributeName", aName)
-        except:
-            print("addToStudyInFather() failed")
-            return ""
-        return so.GetStudyEntry()
-
-    def addToStudyInFather(self, aFather, aShape, aName):
-        """
-        Publish in study aShape with name aName as sub-object of previously published aFather
-        """
-        try:
-            so = self.AddInStudy(aShape, aName, aFather )
-            if so and aName: so.SetAttrString("AttributeName", aName)
-        except:
-            print("addToStudyInFather() failed")
-            return ""
-        return so.GetStudyEntry()

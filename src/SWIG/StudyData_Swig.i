@@ -5,3 +5,5 @@
 %{
 #include "StudyData_Object.h"
 %}
+
+%include "StudyData_Object.h"

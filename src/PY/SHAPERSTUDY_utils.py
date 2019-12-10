@@ -146,7 +146,7 @@ def getEngineIOR():
 ###
 def findOrCreateComponent():
     study = getStudy()
-    father =study.FindComponent( moduleName() )
+    father = study.FindComponent( moduleName() )
     if father is None:
         builder = study.NewBuilder()
         father = builder.NewComponent( moduleName() )

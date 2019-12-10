@@ -29,8 +29,18 @@
 
 module SHAPERSTUDY_ORB
 {
+
+interface SHAPER_Object     : GEOM::GEOM_Object
+{
+  void SetShapeByStream(in string theStream);
+};
+
 interface Gen : GEOM::GEOM_Gen
 {
+  /*!
+   *  \brief Creates a SHAPERSTUDY_Object to interact with SHAPER
+   */
+  SHAPER_Object CreateShape();
 };
 
 interface IShapesOperations : GEOM::GEOM_IShapesOperations
@@ -50,10 +60,6 @@ interface IMeasureOperations  : GEOM::GEOM_IMeasureOperations
 };
 
 interface BaseObject        : GEOM::GEOM_BaseObject
-{
-};
-
-interface SHAPER_Object     : GEOM::GEOM_Object
 {
 };
 
