@@ -127,7 +127,7 @@ __engine__ = None
 def getEngine():
     global __engine__
     if __engine__ is None:
-        __engine__ = getLCC().FindOrLoadComponent( "FactoryServerPy", moduleName() )
+        __engine__ = getLCC().FindOrLoadComponent( "FactoryServer", moduleName() )
         pass
     return __engine__
 
@@ -151,11 +151,11 @@ def findOrCreateComponent():
         builder = study.NewBuilder()
         father = builder.NewComponent( moduleName() )
         attr = builder.FindOrCreateAttribute( father, "AttributeName" )
-        attr.SetValue( moduleName() )
+        attr.SetValue( "Shaper" )
         attr = builder.FindOrCreateAttribute( father, "AttributePixMap" )
         attr.SetPixMap( modulePixmap() )
-        attr = builder.FindOrCreateAttribute( father, "AttributeLocalID" )
-        attr.SetValue( moduleID() )
+        #attr = builder.FindOrCreateAttribute( father, "AttributeLocalID" )
+        #attr.SetValue( moduleID() )
         try:
             builder.DefineComponentInstance( father, getEngine() )
             pass
