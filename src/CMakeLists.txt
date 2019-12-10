@@ -21,8 +21,8 @@
 # Common packages
 ##
 SET(SUBDIRS_COMMON
-  #CXX
-  #SWIG
+  StudyData
+  SWIG
   PY
 )
 
