@@ -22,15 +22,17 @@
 
 #ifndef StudyData_Object_H
 
+#include "StudyData.h"
+
 #include <SALOMEconfig.h>
 #include CORBA_SERVER_HEADER(GEOM_Gen)
 
 #include <TopoDS_Shape.hxx>
 
-class StudyData_Object
+class StudyData_EXPORT StudyData_Object
 {
 public:
-  Standard_EXPORT StudyData_Object(const std::string theFile);
+  StudyData_Object(const std::string theFile);
 
 
 private:

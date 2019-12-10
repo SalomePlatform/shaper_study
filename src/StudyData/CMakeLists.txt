@@ -47,6 +47,7 @@ SET(_link_LIBRARIES
 
 # header files / no moc processing
 SET(STUDYDATA_HEADERS
+	StudyData.h
     StudyData_Object.h
 )
 
