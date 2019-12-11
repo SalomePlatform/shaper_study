@@ -69,7 +69,7 @@ class SHAPERSTUDY_BaseObject(SHAPERSTUDY_ORB__POA.BaseObject):
         Return true if geom object representes a shape.
         For example, method return false for GEOM_MARKER
         """
-        return False
+        return True
 
     def IsSame( self, other ):
         """
@@ -98,13 +98,15 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
         """
         Get a GEOM.shape_type of the object value.
         """
-        return GEOM.SHAPE
+        if self.data is None:
+            return GEOM.SHAPE
+        return self.data.type();
 
     def IsMainShape( self ):
         """
         Returns True if this object is not a sub-shape of another object.
         """
-        return False
+        return True
 
     def GetSubShapeIndices( self ):
         """
@@ -116,20 +118,24 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
         """
         Get a main shape object to which this object is a sub-shape.
         """
-        return
+        return getShape()
 
     def getShape( self ):
         """
         Get the TopoDS_Shape, for colocated case only.
         Called by GEOM_Client to get TopoDS_Shape pointer
         """
-        return 0
+        if self.data is None:
+            return 0
+        return self.data.shape()
 
     def GetShapeStream( self ):
         """
         Get geometric shape of the object as a byte stream in BRep format
         """
-        return ;
+        if self.data is None:
+            return
+        return self.data.shapeStream()
 
     def SetShapeByStream(self, theStream):
         """

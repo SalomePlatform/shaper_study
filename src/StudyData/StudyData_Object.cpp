@@ -31,3 +31,43 @@ StudyData_Object::StudyData_Object(const std::string theFile)
   BRep_Builder aBuilder;
   BRepTools::Read(myShape, streamBrep, aBuilder);
 }
+
+
+GEOM::shape_type StudyData_Object::type() const
+{
+  if (myShape.IsNull())
+    return GEOM::SHAPE;
+  return (GEOM::shape_type) myShape.ShapeType();
+}
+
+
+SALOMEDS::TMPFile* StudyData_Object::shapeStream() const
+{
+  if (myShape.IsNull())
+    return NULL;
+
+  std::ostringstream streamShape;
+
+  //Write TopoDS_Shape in ASCII format to the stream
+  BRepTools::Write(myShape, streamShape);
+
+  //Returns the number of bytes that have been stored in the stream's buffer.
+  int size = streamShape.str().size();
+
+  //Allocate octect buffer of required size
+  CORBA::Octet* OctetBuf = SALOMEDS::TMPFile::allocbuf(size);
+
+  //Copy ostrstream content to the octect buffer
+  memcpy(OctetBuf, streamShape.str().c_str(), size);
+
+  //Create and return TMPFile
+  SALOMEDS::TMPFile_var SeqFile = new SALOMEDS::TMPFile(size, size, OctetBuf, 1);
+  return SeqFile._retn();
+}
+
+
+CORBA::LongLong StudyData_Object::shape() const
+{
+  return ((CORBA::LongLong)(&myShape));
+}
+
