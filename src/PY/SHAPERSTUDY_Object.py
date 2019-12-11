@@ -24,6 +24,8 @@ import SHAPERSTUDY_ORB__POA
 import GEOM
 from SHAPERSTUDY_utils import getEngine
 
+import StudyData_Swig
+
 class SHAPERSTUDY_BaseObject(SHAPERSTUDY_ORB__POA.BaseObject):
     """
     Construct an instance of SHAPER_BaseObject.
@@ -133,6 +135,6 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
         """
         Sets geometric shape content of the object as a byte stream in BRep format
         """
-        return ;
+        self.data = StudyData_Swig.StudyData_Object(theStream)
 
     pass
