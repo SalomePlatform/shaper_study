@@ -26,32 +26,92 @@ from SHAPERSTUDY_utils import getEngine
 
 import StudyData_Swig
 
-class SHAPERSTUDY_BaseObject(SHAPERSTUDY_ORB__POA.BaseObject):
+class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
     """
-    Construct an instance of SHAPER_BaseObject.
+    Construct an instance of SHAPERSTUDY Object.
     """
     def __init__ ( self, *args):
         pass
 
+    def GetShapeType( self ):
+        """
+        Get a GEOM.shape_type of the object value.
+        """
+        if self.data is None:
+            return GEOM.SHAPE
+        return self.data.type();
+
+    def IsMainShape( self ):
+        """
+        Returns True if this object is not a sub-shape of another object.
+        """
+        return True
+
+    def GetSubShapeIndices( self ):
+        """
+        Get a list of ID's of sub-shapes in the main shape.
+        """
+        return []
+
+    def GetMainShape( self ):
+        """
+        Get a main shape object to which this object is a sub-shape.
+        """
+        return getShape()
+
+    def getShape( self ):
+        """
+        Get the TopoDS_Shape, for colocated case only.
+        Called by GEOM_Client to get TopoDS_Shape pointer
+        """
+        if self.data is None:
+            return 0
+        return self.data.shape()
+
+    def GetShapeStream( self ):
+        """
+        Get geometric shape of the object as a byte stream in BRep format
+        """
+        if self.data is None:
+            return
+        return self.data.shapeStream()
+
+    def SetShapeByStream(self, theStream):
+        """
+        Sets geometric shape content of the object as a byte stream in BRep format
+        """
+        self.data = StudyData_Swig.StudyData_Object(theStream)
+
+    """
+    Methods from BaseObject
+    """
     def GetName( self ):
         """
         Get name of the object associated with this object.
         """
         return ""
 
+    def SetEntry( self, theInternalEntry ):
+        """
+        Sets internal (unique) entry of the object in the component's data tree.
+        """
+        self.entry = theInternalEntry
+
     def GetEntry( self ):
         """
         Get internal (unique) entry of the object in the component's data tree.
         """
-        return '0:0:0:1'
+        return self.entry
 
     def GetType( self ):
         """
         Get internal type of operation created this object.
         In SMESH is used to find out if an object is GROUP (type == 37)
         """
+        # 1 corresponds to the Import feature (GEOMImpl_Types.hxx )
         return 1
 
+    # TODO: version number of the shape
     def GetTick( self ):
         """
         Get value of a modification counter of the object
@@ -82,65 +142,5 @@ class SHAPERSTUDY_BaseObject(SHAPERSTUDY_ORB__POA.BaseObject):
         Return the engine creating this object
         """
         return getEngine()
-
-    pass
-
-
-
-class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
-    """
-    Construct an instance of SHAPERSTUDY Object.
-    """
-    def __init__ ( self, *args):
-        pass
-
-    def GetShapeType( self ):
-        """
-        Get a GEOM.shape_type of the object value.
-        """
-        if self.data is None:
-            return GEOM.SHAPE
-        return self.data.type();
-
-    def IsMainShape( self ):
-        """
-        Returns True if this object is not a sub-shape of another object.
-        """
-        return True
-
-    def GetSubShapeIndices( self ):
-        """
-        Get a list of ID's of sub-shapes in the main shape.
-        """
-        return [1]
-
-    def GetMainShape( self ):
-        """
-        Get a main shape object to which this object is a sub-shape.
-        """
-        return getShape()
-
-    def getShape( self ):
-        """
-        Get the TopoDS_Shape, for colocated case only.
-        Called by GEOM_Client to get TopoDS_Shape pointer
-        """
-        if self.data is None:
-            return 0
-        return self.data.shape()
-
-    def GetShapeStream( self ):
-        """
-        Get geometric shape of the object as a byte stream in BRep format
-        """
-        if self.data is None:
-            return
-        return self.data.shapeStream()
-
-    def SetShapeByStream(self, theStream):
-        """
-        Sets geometric shape content of the object as a byte stream in BRep format
-        """
-        self.data = StudyData_Swig.StudyData_Object(theStream)
 
     pass

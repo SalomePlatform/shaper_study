@@ -53,11 +53,13 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         #
         pass
 
-    def CreateShape( self ):
+    def CreateShape( self, theInternalEntry ):
         """
         Creates a SHAPERSTUDY_Object to interact with SHAPER
         """
-        return SHAPERSTUDY_Object.SHAPERSTUDY_Object()._this()
+        aShapeObj = SHAPERSTUDY_Object.SHAPERSTUDY_Object()
+        aShapeObj.SetEntry(theInternalEntry)
+        return aShapeObj._this()
 
     def AddInStudy( self, theObject, theName, theFather ):
         """

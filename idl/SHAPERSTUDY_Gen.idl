@@ -32,7 +32,14 @@ module SHAPERSTUDY_ORB
 
 interface SHAPER_Object     : GEOM::GEOM_Object
 {
+  /*!
+  *  \brief Puts the shape to the object by BRep stream.
+  */
   void SetShapeByStream(in string theStream);
+  /*!
+  *  \brief Sets the internal entry of the object, common for all objects in SHAPER-STUDY
+  */
+  void SetEntry( in string theInternalEntry );
 };
 
 interface Gen : GEOM::GEOM_Gen
@@ -40,7 +47,7 @@ interface Gen : GEOM::GEOM_Gen
   /*!
    *  \brief Creates a SHAPERSTUDY_Object to interact with SHAPER
    */
-  SHAPER_Object CreateShape();
+  SHAPER_Object CreateShape(in string theInternalEntry);
 };
 
 interface IShapesOperations : GEOM::GEOM_IShapesOperations
@@ -56,10 +63,6 @@ interface IFieldOperations  : GEOM::GEOM_IFieldOperations
 };
 
 interface IMeasureOperations  : GEOM::GEOM_IMeasureOperations
-{
-};
-
-interface BaseObject        : GEOM::GEOM_BaseObject
 {
 };
 
