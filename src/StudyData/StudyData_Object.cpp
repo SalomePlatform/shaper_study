@@ -24,12 +24,15 @@
 
 #include <BRep_Builder.hxx>
 #include <BRepTools.hxx>
+#include <BRepBuilderAPI_Copy.hxx>
 
 StudyData_Object::StudyData_Object(const std::string theFile)
 {
   std::istringstream streamBrep(theFile.c_str());
   BRep_Builder aBuilder;
   BRepTools::Read(myShape, streamBrep, aBuilder);
+  myTick = 1;
+  myStream = theFile;
 }
 
 
@@ -71,3 +74,20 @@ CORBA::LongLong StudyData_Object::shape() const
   return ((CORBA::LongLong)(&myShape));
 }
 
+void StudyData_Object::updateShape(const std::string theFile)
+{
+  if (myStream == theFile) { // absolutely identical shapes, no need to store
+    return;
+  }
+  // update the current shape
+  std::istringstream streamBrep(theFile.c_str());
+  BRep_Builder aBuilder;
+  BRepTools::Read(myShape, streamBrep, aBuilder);
+  myTick++;
+  myStream = theFile;
+}
+
+int StudyData_Object::getTick()
+{
+  return myTick;
+}

@@ -40,14 +40,23 @@ interface SHAPER_Object     : GEOM::GEOM_Object
   *  \brief Sets the internal entry of the object, common for all objects in SHAPER-STUDY
   */
   void SetEntry( in string theInternalEntry );
+  /*!
+  *  \brief Sets SObject of this object (when it is published)
+  */
+  void SetSO( in SALOMEDS::SObject theInternalEntry );
+  /*!
+  *  \brief Returns SObject of this object
+  */
+  SALOMEDS::SObject GetSO();
+
 };
 
 interface Gen : GEOM::GEOM_Gen
 {
   /*!
-   *  \brief Creates a SHAPERSTUDY_Object to interact with SHAPER
+   *  \brief Searches existing or creates a new SHAPERSTUDY_Object to interact with SHAPER
    */
-  SHAPER_Object CreateShape(in string theInternalEntry);
+  SHAPER_Object FindOrCreateShape(in string theInternalEntry);
 };
 
 interface IShapesOperations : GEOM::GEOM_IShapesOperations

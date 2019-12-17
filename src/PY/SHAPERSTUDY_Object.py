@@ -31,6 +31,8 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
     Construct an instance of SHAPERSTUDY Object.
     """
     def __init__ ( self, *args):
+        self.SO = None
+        self.data = None
         pass
 
     def GetShapeType( self ):
@@ -80,7 +82,10 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
         """
         Sets geometric shape content of the object as a byte stream in BRep format
         """
-        self.data = StudyData_Swig.StudyData_Object(theStream)
+        if self.data:
+          self.data.updateShape(theStream)
+        else:
+          self.data = StudyData_Swig.StudyData_Object(theStream)
 
     """
     Methods from BaseObject
@@ -89,7 +94,7 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
         """
         Get name of the object associated with this object.
         """
-        return ""
+        return self.SO.GetName()
 
     def SetEntry( self, theInternalEntry ):
         """
@@ -111,18 +116,19 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
         # 1 corresponds to the Import feature (GEOMImpl_Types.hxx )
         return 1
 
-    # TODO: version number of the shape
     def GetTick( self ):
         """
         Get value of a modification counter of the object
         """
-        return 1
+        if self.data:
+          return self.data.getTick()
+        return 0
 
     def GetStudyEntry( self ):
         """
         Get a Study entry where this object was published.
         """
-        return '0:0:0:1'
+        return self.SO.GetID()
 
     def IsShape( self ):
         """
@@ -135,12 +141,24 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
         """
         Return true if passed object is identical to this object
         """
-        return False
+        return self.GetType() == other.GetType() and self.GetEntry() == other.GetEntry()
 
     def GetGen( self ):
         """
         Return the engine creating this object
         """
         return getEngine()
+
+    def SetSO( self, theSO ):
+        """
+        Sets SObject of this object (when it is published)
+        """
+        self.SO = theSO
+        
+    def GetSO( self ):
+        """
+        Returns SObject of this object
+        """
+        return self.SO
 
     pass

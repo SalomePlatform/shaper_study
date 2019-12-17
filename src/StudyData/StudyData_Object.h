@@ -40,8 +40,16 @@ public:
 
   CORBA::LongLong shape() const;
 
+  // updates the current shape if needed
+  void updateShape(const std::string theFile);
+
+  // returns the version number of the shape starting from 1
+  int getTick();
+
 private:
-  TopoDS_Shape myShape;
+  std::string myStream; // the current stream of a shape
+  TopoDS_Shape myShape; // latest shape of this object
+  int myTick; // version index of the shape
 };
 
 #endif // !StudyData_Object_H

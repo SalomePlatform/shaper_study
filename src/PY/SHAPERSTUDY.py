@@ -21,6 +21,7 @@
 #
 
 import SHAPERSTUDY_ORB__POA
+import SHAPERSTUDY_ORB
 import SALOME_ComponentPy
 import SALOME_DriverPy
 import SALOMEDS
@@ -53,10 +54,22 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         #
         pass
 
-    def CreateShape( self, theInternalEntry ):
+    def FindOrCreateShape( self, theInternalEntry ):
         """
-        Creates a SHAPERSTUDY_Object to interact with SHAPER
+        Searches existing or creates a new SHAPERSTUDY_Object to interact with SHAPER
         """
+        # Searching in the study tree
+        aComponent = findOrCreateComponent()
+        aSOIter = getStudy().NewChildIterator(aComponent)
+        while aSOIter.More():
+          aSO = aSOIter.Value()
+          anIOR = aSO.GetIOR()
+          anObj = salome.orb.string_to_object(anIOR)
+          if isinstance(anObj, SHAPERSTUDY_ORB._objref_SHAPER_Object):
+            if anObj.GetEntry() == theInternalEntry:
+              return anObj
+          aSOIter.Next()
+
         aShapeObj = SHAPERSTUDY_Object.SHAPERSTUDY_Object()
         aShapeObj.SetEntry(theInternalEntry)
         return aShapeObj._this()
@@ -76,6 +89,7 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         if theObject:
           anIOR = salome.orb.object_to_string(theObject)
           aResultSO.SetAttrString("AttributeIOR", anIOR)
+          theObject.SetSO(aResultSO)
 
         return aResultSO
 
