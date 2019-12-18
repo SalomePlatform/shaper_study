@@ -38,7 +38,7 @@ public:
 
   SALOMEDS::TMPFile* shapeStream() const;
 
-  CORBA::LongLong shape() const;
+  long long shape() const;
 
   // updates the current shape if needed
   void updateShape(const std::string theFile);

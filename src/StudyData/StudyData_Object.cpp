@@ -69,9 +69,9 @@ SALOMEDS::TMPFile* StudyData_Object::shapeStream() const
 }
 
 
-CORBA::LongLong StudyData_Object::shape() const
+long long StudyData_Object::shape() const
 {
-  return ((CORBA::LongLong)(&myShape));
+  return ((long long)(&myShape));
 }
 
 void StudyData_Object::updateShape(const std::string theFile)
