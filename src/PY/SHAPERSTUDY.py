@@ -90,6 +90,9 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
           anIOR = salome.orb.object_to_string(theObject)
           aResultSO.SetAttrString("AttributeIOR", anIOR)
           theObject.SetSO(aResultSO)
+        # add a red-reference that means that this is an active reference to SHAPER result
+        aSub = aBuilder.NewObject(aResultSO)
+        aBuilder.Addreference(aSub, aResultSO)
 
         return aResultSO
 

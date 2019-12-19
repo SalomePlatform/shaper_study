@@ -132,7 +132,7 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
 
     def IsShape( self ):
         """
-        Return true if geom object representes a shape.
+        Return true if geom object represents a shape.
         For example, method return false for GEOM_MARKER
         """
         return True

@@ -49,19 +49,14 @@ SALOMEDS::TMPFile* StudyData_Object::shapeStream() const
   if (myShape.IsNull())
     return NULL;
 
-  std::ostringstream streamShape;
-
-  //Write TopoDS_Shape in ASCII format to the stream
-  BRepTools::Write(myShape, streamShape);
-
   //Returns the number of bytes that have been stored in the stream's buffer.
-  int size = streamShape.str().size();
+  int size = myStream.size();
 
   //Allocate octect buffer of required size
   CORBA::Octet* OctetBuf = SALOMEDS::TMPFile::allocbuf(size);
 
   //Copy ostrstream content to the octect buffer
-  memcpy(OctetBuf, streamShape.str().c_str(), size);
+  memcpy(OctetBuf, myStream.c_str(), size);
 
   //Create and return TMPFile
   SALOMEDS::TMPFile_var SeqFile = new SALOMEDS::TMPFile(size, size, OctetBuf, 1);
