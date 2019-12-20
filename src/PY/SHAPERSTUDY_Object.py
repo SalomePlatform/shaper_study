@@ -41,7 +41,10 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
         """
         if self.data is None:
             return GEOM.SHAPE
-        return self.data.type();
+        types = {0:GEOM.COMPOUND, 1:GEOM.COMPSOLID, 2:GEOM.SOLID,
+                 3:GEOM.SHELL, 4:GEOM.FACE, 5:GEOM.WIRE,
+                 6:GEOM.EDGE, 7:GEOM.VERTEX, 8:GEOM.SHAPE, 9:GEOM.FLAT}
+        return types[self.data.type()];
 
     def IsMainShape( self ):
         """

@@ -36,11 +36,11 @@ StudyData_Object::StudyData_Object(const std::string theFile)
 }
 
 
-GEOM::shape_type StudyData_Object::type() const
+int StudyData_Object::type() const
 {
   if (myShape.IsNull())
-    return GEOM::SHAPE;
-  return (GEOM::shape_type) myShape.ShapeType();
+    return 8; // GEOM.SHAPE
+  return (int) myShape.ShapeType();
 }
 
 

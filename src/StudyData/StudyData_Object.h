@@ -34,7 +34,7 @@ class StudyData_EXPORT StudyData_Object
 public:
   StudyData_Object(const std::string theFile);
 
-  GEOM::shape_type type() const;
+  int type() const;
 
   SALOMEDS::TMPFile* shapeStream() const;
 
