@@ -161,4 +161,17 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
         """
         return self.SO
 
+    def IsParametrical(self):
+        """
+        Returns true if the current object has connection to a parametrical model
+        which can be modified by parameters change.
+        """
+        return True
+
+    def BreakLinks(self):
+        """
+        Breaks links to parametrical mode for parametrical shape
+        """
+        pass
+
     pass
