@@ -172,6 +172,6 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
         """
         Breaks links to parametrical mode for parametrical shape
         """
-        pass
+        print("##### Break parametrical links")
 
     pass
