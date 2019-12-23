@@ -296,3 +296,9 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         Adds to the group all the given shapes. No errors, if some shapes are already included.
         """
         return GetIGroupOperations().UnionList( theGroup, theSubShapes )
+
+    def BreakLink(self, theEntry):
+        """
+        Breaks links to parametrical mode for parametrical shape
+        """
+        print("##### Break parametrical links", theEntry)

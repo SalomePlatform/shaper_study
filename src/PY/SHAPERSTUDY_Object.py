@@ -171,10 +171,4 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
         """
         return True
 
-    def BreakLinks(self):
-        """
-        Breaks links to parametrical mode for parametrical shape
-        """
-        print("##### Break parametrical links")
-
     pass
