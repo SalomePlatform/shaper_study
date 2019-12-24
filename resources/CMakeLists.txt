@@ -20,11 +20,28 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
+INCLUDE(UseQtExt)
+
+
 SET(SHAPERSTUDY_RESOURCES_FILES
-  shaper.png
+    compsolid.png
+    edge.png
+    face.png
+    shaper.png
+    shell.png
+    solid.png
+    vertex.png
+    wire.png
 )
 
+SET(_ts_RESOURCES
+    SHAPERSTUDY_images.ts
+)
+
+
+
 INSTALL(FILES ${SHAPERSTUDY_RESOURCES_FILES} DESTINATION ${SALOME_SHAPERSTUDY_INSTALL_RES_DATA})
+QT_INSTALL_TS_RESOURCES("${_ts_RESOURCES}" "${SALOME_SHAPERSTUDY_INSTALL_RES_DATA}")
 
 SALOME_CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/SalomeApp.xml.in ${CMAKE_CURRENT_BINARY_DIR}/SalomeApp.xml INSTALL ${SALOME_SHAPERSTUDY_INSTALL_RES_DATA})
 SALOME_CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/SHAPERSTUDYCatalog.xml.in ${CMAKE_CURRENT_BINARY_DIR}/SHAPERSTUDYCatalog.xml INSTALL ${SALOME_SHAPERSTUDY_INSTALL_RES_DATA})

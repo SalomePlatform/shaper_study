@@ -28,8 +28,10 @@ import SALOMEDS
 from SHAPERSTUDY_utils import findOrCreateComponent, moduleName, getStudy, getORB
 import salome
 import SHAPERSTUDY_Object
+import GEOM
 
 __entry2IOR__ = {}
+
 
 class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
                   SALOME_ComponentPy.SALOME_ComponentPy_i,
@@ -37,6 +39,17 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
 
 
     ShapeType = {"AUTO":-1, "COMPOUND":0, "COMPSOLID":1, "SOLID":2, "SHELL":3, "FACE":4, "WIRE":5, "EDGE":6, "VERTEX":7, "SHAPE":8, "FLAT":9}
+    
+    ShaperIcons = {GEOM.COMPOUND:"SHAPER_ICON_COMPSOLID",
+        GEOM.COMPSOLID:"SHAPER_ICON_COMPSOLID",
+        GEOM.SOLID:"SHAPER_ICON_SOLID",
+        GEOM.SHELL:"SHAPER_ICON_SHELL",
+        GEOM.FACE:"SHAPER_ICON_FACE",
+        GEOM.WIRE:"SHAPER_ICON_WIRE",
+        GEOM.EDGE:"SHAPER_ICON_EDGE",
+        GEOM.VERTEX:"SHAPER_ICON_VERTEX",
+        GEOM.SHAPE:"SHAPER_ICON_SOLID",
+        GEOM.FLAT:"SHAPER_ICON_FACE"}
 
     def __init__ ( self, orb, poa, contID, containerName, instanceName, interfaceName ):
         """
@@ -86,10 +99,18 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
           theFather = findOrCreateComponent()
         aResultSO = aBuilder.NewObject(theFather);
         aResultSO.SetAttrString("AttributeName", theName)
-        if theObject:
-          anIOR = salome.orb.object_to_string(theObject)
-          aResultSO.SetAttrString("AttributeIOR", anIOR)
-          theObject.SetSO(aResultSO)
+        
+        
+        if theObject is not None:
+            anIOR = salome.orb.object_to_string(theObject)
+            aResultSO.SetAttrString("AttributeIOR", anIOR)
+            theObject.SetSO(aResultSO)
+          
+            aType = theObject.GetShapeType()
+            aAttr = aBuilder.FindOrCreateAttribute(aResultSO, "AttributePixMap")
+            aPixmap = aAttr._narrow(salome.SALOMEDS.AttributePixMap)
+            aPixmap.SetPixMap(SHAPERSTUDY.ShaperIcons[aType])
+            
         # add a red-reference that means that this is an active reference to SHAPER result
         aSub = aBuilder.NewObject(aResultSO)
         aBuilder.Addreference(aSub, aResultSO)
