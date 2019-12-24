@@ -44,8 +44,12 @@ int StudyData_Object::type() const
 }
 
 
-SALOMEDS::TMPFile* StudyData_Object::shapeStream() const
+std::string StudyData_Object::shapeStream() const
 {
+  return myStream;
+
+  /*
+
   if (myShape.IsNull())
     return NULL;
 
@@ -61,6 +65,7 @@ SALOMEDS::TMPFile* StudyData_Object::shapeStream() const
   //Create and return TMPFile
   SALOMEDS::TMPFile_var SeqFile = new SALOMEDS::TMPFile(size, size, OctetBuf, 1);
   return SeqFile._retn();
+  */
 }
 
 

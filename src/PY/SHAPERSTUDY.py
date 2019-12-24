@@ -125,6 +125,7 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         go = SHAPERSTUDY_Object()._this()
         return go
 
+    # For now it is impossible to remove anything from the SHAPER-STUDY
     def RemoveObject( self, theObject ):
         """
         Removes the object from the component
@@ -178,14 +179,22 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         print("My Test")
         return "test"
 
-
     def Save( self, component, URL, isMultiFile ):
         """
-        Saves data.
-        Nothing to do here because in our case all data
-        are stored in the SALOMEDS attributes.
+        Saves data: all objects into one file
         """
-        return ""
+        aResult = "" # string-pairs of internal entries and shape streams
+        aSOIter = getStudy().NewChildIterator(findOrCreateComponent())
+        while aSOIter.More():
+          aSO = aSOIter.Value()
+          anIOR = aSO.GetIOR()
+          anObj = salome.orb.string_to_object(anIOR)
+          if isinstance(anObj, SHAPERSTUDY_ORB._objref_SHAPER_Object):
+            if len(aResult):
+              aResult = aResult + '|'
+            aResult = aResult + anObj.GetEntry() + "|" + anObj.GetShapeStream().decode()
+          aSOIter.Next()
+        return aResult.encode()
 
     def Load( self, component, stream, URL, isMultiFile ):
         """
@@ -193,15 +202,33 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         """
         global __entry2IOR__
         __entry2IOR__.clear()
-        #
+        
+        list=stream.decode().split('|')
+        isId = True
+        anId = ""
+        for sub in list:
+          if isId:
+            anId = sub
+          else: # create shapes by BRep in the stream
+            aShapeObj = SHAPERSTUDY_Object.SHAPERSTUDY_Object()
+            aShapeObj.SetShapeByStream(sub)
+            aShapeObj.SetEntry(anId)
+            anIOR = salome.orb.object_to_string(aShapeObj._this())
+            __entry2IOR__[anId] = anIOR
+
+          isId = not isId
+
         return 1
         
     def IORToLocalPersistentID(self, sobject, IOR, isMultiFile, isASCII):
         """
         Gets persistent ID for the CORBA object.
-        It's enough to use study entry.
+        The internal entry of the Object is returned.
         """
-        return sobject.GetID()
+        anObj = salome.orb.string_to_object(IOR)
+        if anObj and isinstance(anObj, SHAPERSTUDY_ORB._objref_SHAPER_Object):
+          return anObj.GetEntry()
+        return ""
 
     def LocalPersistentIDToIOR(self, sobject, persistentID, isMultiFile, isASCII):
         "Converts persistent ID of the object to its IOR."

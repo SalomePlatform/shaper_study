@@ -36,7 +36,7 @@ public:
 
   int type() const;
 
-  SALOMEDS::TMPFile* shapeStream() const;
+  std::string shapeStream() const;
 
   long long shape() const;
 

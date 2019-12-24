@@ -26,6 +26,13 @@ from SHAPERSTUDY_utils import getEngine
 
 import StudyData_Swig
 
+# converter from the integer values to idl shape_type enumerations
+__shape_types__ = {
+  0:GEOM.COMPOUND, 1:GEOM.COMPSOLID, 2:GEOM.SOLID,
+  3:GEOM.SHELL, 4:GEOM.FACE, 5:GEOM.WIRE,
+  6:GEOM.EDGE, 7:GEOM.VERTEX, 8:GEOM.SHAPE, 9:GEOM.FLAT}
+
+
 class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
     """
     Construct an instance of SHAPERSTUDY Object.
@@ -41,10 +48,8 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
         """
         if self.data is None:
             return GEOM.SHAPE
-        types = {0:GEOM.COMPOUND, 1:GEOM.COMPSOLID, 2:GEOM.SOLID,
-                 3:GEOM.SHELL, 4:GEOM.FACE, 5:GEOM.WIRE,
-                 6:GEOM.EDGE, 7:GEOM.VERTEX, 8:GEOM.SHAPE, 9:GEOM.FLAT}
-        return types[self.data.type()];
+        global __shape_types__
+        return __shape_types__[self.data.type()];
 
     def IsMainShape( self ):
         """
@@ -78,8 +83,8 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
         Get geometric shape of the object as a byte stream in BRep format
         """
         if self.data is None:
-            return
-        return self.data.shapeStream()
+            return b''
+        return self.data.shapeStream().encode()
 
     def SetShapeByStream(self, theStream):
         """
