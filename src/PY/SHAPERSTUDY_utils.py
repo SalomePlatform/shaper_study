@@ -151,7 +151,7 @@ def findOrCreateComponent():
         builder = study.NewBuilder()
         father = builder.NewComponent( moduleName() )
         attr = builder.FindOrCreateAttribute( father, "AttributeName" )
-        attr.SetValue( "Shaper" )
+        attr.SetValue( "ShaperStudy" )
         attr = builder.FindOrCreateAttribute( father, "AttributePixMap" )
         attr.SetPixMap( modulePixmap() )
         #attr = builder.FindOrCreateAttribute( father, "AttributeLocalID" )
