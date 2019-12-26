@@ -30,7 +30,7 @@
 module SHAPERSTUDY_ORB
 {
 
-interface SHAPER_Object     : GEOM::GEOM_Object
+interface SHAPER_Object : GEOM::GEOM_Object
 {
   /*!
   *  \brief Puts the shape to the object by BRep stream.
@@ -48,7 +48,18 @@ interface SHAPER_Object     : GEOM::GEOM_Object
   *  \brief Returns SObject of this object
   */
   SALOMEDS::SObject GetSO();
-
+  /*!
+  *  \brief Returns true if shape is already dead
+  */
+  boolean IsDead();
+  /*!
+  *  \brief Makes the dead-copy of the shape and returns it
+  */
+  SHAPER_Object MakeDead();
+  /*!
+  *  \brief Returns the stream of the previous version of the shape stored here
+  */
+  SALOMEDS::TMPFile GetOldShapeStream();
 };
 
 interface Gen : GEOM::GEOM_Gen

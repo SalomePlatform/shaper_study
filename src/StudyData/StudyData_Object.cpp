@@ -35,7 +35,6 @@ StudyData_Object::StudyData_Object(const std::string theFile)
   myStream = theFile;
 }
 
-
 int StudyData_Object::type() const
 {
   if (myShape.IsNull())
@@ -43,31 +42,15 @@ int StudyData_Object::type() const
   return (int) myShape.ShapeType();
 }
 
-
 std::string StudyData_Object::shapeStream() const
 {
   return myStream;
-
-  /*
-
-  if (myShape.IsNull())
-    return NULL;
-
-  //Returns the number of bytes that have been stored in the stream's buffer.
-  int size = myStream.size();
-
-  //Allocate octect buffer of required size
-  CORBA::Octet* OctetBuf = SALOMEDS::TMPFile::allocbuf(size);
-
-  //Copy ostrstream content to the octect buffer
-  memcpy(OctetBuf, myStream.c_str(), size);
-
-  //Create and return TMPFile
-  SALOMEDS::TMPFile_var SeqFile = new SALOMEDS::TMPFile(size, size, OctetBuf, 1);
-  return SeqFile._retn();
-  */
 }
 
+std::string StudyData_Object::oldShapeStream() const
+{
+  return myOldStream.empty() ? myStream : myOldStream;
+}
 
 long long StudyData_Object::shape() const
 {
@@ -82,12 +65,19 @@ void StudyData_Object::updateShape(const std::string theFile)
   // update the current shape
   std::istringstream streamBrep(theFile.c_str());
   BRep_Builder aBuilder;
+  myOldShape = myShape;
   BRepTools::Read(myShape, streamBrep, aBuilder);
   myTick++;
+  myOldStream = myStream;
   myStream = theFile;
 }
 
-int StudyData_Object::getTick()
+int StudyData_Object::getTick() const
 {
   return myTick;
+}
+
+void StudyData_Object::setTick(const int theValue)
+{
+  myTick = theValue;
 }

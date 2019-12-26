@@ -176,7 +176,6 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         Parameters:
             theStudyEntry is an entry of the Object in the study
         """
-        print("My Test")
         return "test"
 
     def Save( self, component, URL, isMultiFile ):
@@ -184,15 +183,28 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         Saves data: all objects into one file
         """
         aResult = "" # string-pairs of internal entries and shape streams
-        aSOIter = getStudy().NewChildIterator(findOrCreateComponent())
+        aStudy = getStudy()
+        aSOIter = aStudy.NewChildIterator(findOrCreateComponent())
         while aSOIter.More():
-          aSO = aSOIter.Value()
-          anIOR = aSO.GetIOR()
-          anObj = salome.orb.string_to_object(anIOR)
-          if isinstance(anObj, SHAPERSTUDY_ORB._objref_SHAPER_Object):
-            if len(aResult):
-              aResult = aResult + '|'
-            aResult = aResult + anObj.GetEntry() + "|" + anObj.GetShapeStream().decode()
+          aSOVal = aSOIter.Value()
+          aSOList = [aSOVal]
+          # collect also the history shape objects
+          aRes, aHistSO = aSOVal.FindSubObject(2)
+          if aRes:
+            aSOIter2 = aStudy.NewChildIterator(aHistSO)
+            while aSOIter2.More():
+              aSOList.append(aSOIter2.Value())
+              aSOIter2.Next()
+          # for each sobject export shapes stream if exists
+          for aSO in aSOList:
+            anIOR = aSO.GetIOR()
+            anObj = salome.orb.string_to_object(anIOR)
+            if isinstance(anObj, SHAPERSTUDY_ORB._objref_SHAPER_Object):
+              if len(aResult):
+                aResult = aResult + '|'
+              aResult = aResult + anObj.GetEntry() + "|" + anObj.GetShapeStream().decode()
+              aResult = aResult + "|" + anObj.GetOldShapeStream().decode()
+
           aSOIter.Next()
         return aResult.encode()
 
@@ -203,20 +215,26 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         global __entry2IOR__
         __entry2IOR__.clear()
         
-        list=stream.decode().split('|')
-        isId = True
+        aList=stream.decode().split('|')
+        aSubNum = 1
         anId = ""
-        for sub in list:
-          if isId:
-            anId = sub
-          else: # create shapes by BRep in the stream
+        aNewShapeStream = ""
+        for aSub in aList:
+          if aSubNum == 1:
+            anId = aSub
+            aSubNum = 2
+          elif aSubNum == 2:
+            aNewShapeStream = aSub
+            aSubNum = 3
+          else: # create shapes by BRep in the stream: set old first then new
             aShapeObj = SHAPERSTUDY_Object.SHAPERSTUDY_Object()
-            aShapeObj.SetShapeByStream(sub)
+            if len(aSub):
+              aShapeObj.SetShapeByStream(aSub)
+            aShapeObj.SetShapeByStream(aNewShapeStream)
             aShapeObj.SetEntry(anId)
             anIOR = salome.orb.object_to_string(aShapeObj._this())
             __entry2IOR__[anId] = anIOR
-
-          isId = not isId
+            aSubNum = 1
 
         return 1
         
@@ -234,7 +252,10 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         "Converts persistent ID of the object to its IOR."
         global __entry2IOR__
         if persistentID in __entry2IOR__:
-            return __entry2IOR__[persistentID]
+          aRes = __entry2IOR__[persistentID]
+          if len(aRes): # set SO from the study, the sobject param is temporary, don't store it
+            salome.orb.string_to_object(aRes).SetSO(getStudy().FindObjectID(sobject.GetID()))
+          return aRes
         return ""
 
     def DumpPython( self, isPublished, isMultiFile ):
@@ -347,6 +368,24 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
 
     def BreakLink(self, theEntry):
         """
-        Breaks links to parametrical mode for parametrical shape
+        Breaks links to not-dead shape, make the shape as dead
         """
-        print("##### Break parametrical links", theEntry)
+        aStudy = getStudy()
+        aSO = aStudy.FindObjectID(theEntry)
+        if not aSO:
+          return
+        aRes, aSSO = aSO.ReferencedObject()
+        if not aRes:
+          return # only SObjects referenced to the SHAPEr STUDY objects are allowed
+        anIOR = aSSO.GetIOR()
+        if not anIOR:
+          return # must be referenced to the SHAPER STUDY shape
+        anObj = salome.orb.string_to_object(anIOR)
+        if not anObj or not isinstance(anObj, SHAPERSTUDY_ORB._objref_SHAPER_Object):
+          return
+        if anObj.IsDead():
+          return # do nothing for reference to already dead shape
+        aDeadShape = anObj.MakeDead()
+        aBuilder = aStudy.NewBuilder()
+        aBuilder.RemoveReference(aSO) # reset reference to the dead shape
+        aBuilder.Addreference(aSO, aDeadShape.GetSO())

@@ -22,7 +22,8 @@
 
 import SHAPERSTUDY_ORB__POA
 import GEOM
-from SHAPERSTUDY_utils import getEngine
+from SHAPERSTUDY_utils import getEngine, getStudy
+import salome
 
 import StudyData_Swig
 
@@ -85,6 +86,14 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
         if self.data is None:
             return b''
         return self.data.shapeStream().encode()
+
+    def GetOldShapeStream( self ):
+        """
+        Get geometric shape of the object as a byte stream in BRep format
+        """
+        if self.data is None:
+            return b''
+        return self.data.oldShapeStream().encode()
 
     def SetShapeByStream(self, theStream):
         """
@@ -174,6 +183,39 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
         Returns true if the current object has connection to a parametrical model
         which can be modified by parameters change.
         """
-        return True
+        return not self.IsDead()
+
+    def IsDead(self):
+        """
+        Returns true if the shape is dead - no parametrical link to the SHAPER exists
+        """
+        return self.GetEntry().startswith("dead")
+
+    def MakeDead(self):
+        """
+        Makes the dead-copy of the shape and returns it.
+        """
+        aStudy = getStudy()
+        aBuilder = aStudy.NewBuilder()
+        aRes, aHistSO = self.SO.FindSubObject(2)
+        if not aRes: # create a "history" folder if it does not exist
+          aHistSO = aBuilder.NewObjectToTag(self.SO, 2)
+          aHistSO.SetAttrString("AttributeName", "History")
+
+        aDeadSO = aBuilder.NewObject(aHistSO)
+        anIndex = aDeadSO.Tag()
+        aDeadSO.SetAttrString("AttributeName", self.SO.GetName() + " (" + str(anIndex) + ")")
+        aDead = SHAPERSTUDY_Object()
+        aDeadEntry = "dead" + str(anIndex) + "_" + self.GetEntry()
+        aDead.SetEntry(aDeadEntry)
+        aDead.SetShapeByStream(self.data.oldShapeStream())
+        aDeadObj = aDead._this()
+        anIOR = salome.orb.object_to_string(aDeadObj)
+        aDeadSO.SetAttrString("AttributeIOR", anIOR)
+        aDead.SetSO(aDeadSO)
+        if self.GetTick() > 2:
+          aDead.data.setTick(self.GetTick() - 1) # set the tick of an old shape
+        return aDeadObj
+          
 
     pass

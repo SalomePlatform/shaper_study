@@ -37,6 +37,7 @@ public:
   int type() const;
 
   std::string shapeStream() const;
+  std::string oldShapeStream() const;
 
   long long shape() const;
 
@@ -44,11 +45,14 @@ public:
   void updateShape(const std::string theFile);
 
   // returns the version number of the shape starting from 1
-  int getTick();
+  int getTick() const;
+
+  // sets the version number of the shape starting from 1
+  void setTick(const int theValue);
 
 private:
-  std::string myStream; // the current stream of a shape
-  TopoDS_Shape myShape; // latest shape of this object
+  std::string myStream, myOldStream; // the current and old stream of a shape
+  TopoDS_Shape myShape, myOldShape; // latest shape of this object and the old one
   int myTick; // version index of the shape
 };
 

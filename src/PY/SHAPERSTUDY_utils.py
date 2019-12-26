@@ -127,7 +127,7 @@ __engine__ = None
 def getEngine():
     global __engine__
     if __engine__ is None:
-        __engine__ = getLCC().FindOrLoadComponent( "FactoryServer", moduleName() )
+        __engine__ = getLCC().FindOrLoad_Component( "FactoryServer", moduleName() )
         pass
     return __engine__
 
@@ -146,9 +146,9 @@ def getEngineIOR():
 ###
 def findOrCreateComponent():
     study = getStudy()
+    builder = study.NewBuilder()
     father = study.FindComponent( moduleName() )
     if father is None:
-        builder = study.NewBuilder()
         father = builder.NewComponent( moduleName() )
         attr = builder.FindOrCreateAttribute( father, "AttributeName" )
         attr.SetValue( "ShaperStudy" )
@@ -162,5 +162,7 @@ def findOrCreateComponent():
         except:
             pass
         pass
+    # load the SHAPER-STUDY file if it is not done yet
+    builder.LoadWith(father, getEngine())
     return father
 
