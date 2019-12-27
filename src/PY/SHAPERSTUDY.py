@@ -386,6 +386,12 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         if anObj.IsDead():
           return # do nothing for reference to already dead shape
         aDeadShape = anObj.MakeDead()
+        
+        # Replace shape object in the parent mesh
+        aMeshSObject = aSO.GetFather()
+        aMeshObject = aMeshSObject.GetObject()
+        aMeshObject.ReplaceShape(aDeadShape, anObj)
+        
         aBuilder = aStudy.NewBuilder()
         aBuilder.RemoveReference(aSO) # reset reference to the dead shape
         aBuilder.Addreference(aSO, aDeadShape.GetSO())
