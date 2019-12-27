@@ -29,6 +29,7 @@ from SHAPERSTUDY_utils import findOrCreateComponent, moduleName, getStudy, getOR
 import salome
 import SHAPERSTUDY_Object
 import GEOM
+import SMESH
 
 __entry2IOR__ = {}
 
@@ -390,8 +391,8 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         # Replace shape object in the parent mesh
         aMeshSObject = aSO.GetFather()
         aMeshObject = aMeshSObject.GetObject()
-        aMeshObject.ReplaceShape(aDeadShape, anObj)
-        
+        aMeshObject.ReplaceShape(aDeadShape)
+       
         aBuilder = aStudy.NewBuilder()
         aBuilder.RemoveReference(aSO) # reset reference to the dead shape
         aBuilder.Addreference(aSO, aDeadShape.GetSO())
