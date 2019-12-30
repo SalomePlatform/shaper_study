@@ -28,17 +28,20 @@
 #include CORBA_SERVER_HEADER(GEOM_Gen)
 
 #include <TopoDS_Shape.hxx>
+#include <list>
 
 class StudyData_EXPORT StudyData_Object
 {
 public:
   StudyData_Object(const std::string theFile);
+  StudyData_Object();
 
   int type() const;
 
   std::string shapeStream() const;
   std::string oldShapeStream() const;
 
+  // returns the stored shape
   long long shape() const;
 
   // updates the current shape if needed
@@ -49,6 +52,12 @@ public:
 
   // sets the version number of the shape starting from 1
   void setTick(const int theValue);
+
+  // sets the shape by the pointer to the TopoDS_Shape
+  void SetShapeByPointer(const long long theShape);
+
+  // returns the group shape related to the current selection in the group
+  long long groupShape(long long theMainShape, const std::list<long> theSelection);
 
 private:
   std::string myStream, myOldStream; // the current and old stream of a shape

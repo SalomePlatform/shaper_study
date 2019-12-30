@@ -60,6 +60,39 @@ interface SHAPER_Object : GEOM::GEOM_Object
   *  \brief Returns the stream of the previous version of the shape stored here
   */
   SALOMEDS::TMPFile GetOldShapeStream();
+  /*!
+  *  \brief Sets internal type of operation created this object. For group it is 37, shape 1.
+  */
+  void SetType( in long theType );
+
+  /*!
+  *  \brief Sets the shape by the pointer to the TopoDS_Shape
+  */
+  void SetShapeByPointer(in long long theShape);
+};
+
+/*!
+ * A group extension of the SHAPER object:
+ * it contains the selection-type and selected sub-shapes indices.
+ */
+interface SHAPER_Group : SHAPER_Object
+{
+  /*!
+  *  \brief Sets what is returned in the GEOM_IGroupOperations::GetType
+  */
+  void SetSelectionType(in long theType);
+  /*!
+  *  \brief Returns the type of the selected sub-shapes
+  */
+  long GetSelectionType();
+  /*!
+  *  \brief Sets what is returned in the GEOM_IGroupOperations::GetObjects
+  */
+  void SetSelection(in GEOM::ListOfLong theSelection);
+  /*!
+  *  \brief Returns the selected sub-shapes indices
+  */
+  GEOM::ListOfLong GetSelection();
 };
 
 interface Gen : GEOM::GEOM_Gen
@@ -76,6 +109,10 @@ interface IShapesOperations : GEOM::GEOM_IShapesOperations
 
 interface IGroupOperations  : GEOM::GEOM_IGroupOperations
 {
+  /*!
+  *  \brief Searches existing group of theOwner shape by the entry. Returns NULL if can not find.
+  */
+  SHAPER_Group FindGroup(in SHAPER_Object theOwner, in string theEntry);
 };
 
 interface IFieldOperations  : GEOM::GEOM_IFieldOperations

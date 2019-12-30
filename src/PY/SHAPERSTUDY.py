@@ -28,6 +28,7 @@ import SALOMEDS
 from SHAPERSTUDY_utils import findOrCreateComponent, moduleName, getStudy, getORB
 import salome
 import SHAPERSTUDY_Object
+import SHAPERSTUDY_IOperations
 import GEOM
 import SMESH
 
@@ -50,7 +51,8 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         GEOM.EDGE:"SHAPER_ICON_EDGE",
         GEOM.VERTEX:"SHAPER_ICON_VERTEX",
         GEOM.SHAPE:"SHAPER_ICON_SOLID",
-        GEOM.FLAT:"SHAPER_ICON_FACE"}
+        GEOM.FLAT:"SHAPER_ICON_FACE"
+        }
 
     def __init__ ( self, orb, poa, contID, containerName, instanceName, interfaceName ):
         """
@@ -96,25 +98,42 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         """
         aStudy = getStudy()
         aBuilder = aStudy.NewBuilder()
+        isGroup = theObject.GetType() == 37
         if not theFather:
+          if isGroup:
+            return None # Group may be added only under the shape-father
           theFather = findOrCreateComponent()
-        aResultSO = aBuilder.NewObject(theFather);
+        aResultSO = None
+        if isGroup: # add group to the third sub-label or later to keep space for reference and "History"
+          aTag = 3
+          anIter = aStudy.NewChildIterator(theFather)
+          while anIter.More():
+            aCurrentTag = anIter.Value().Tag() + 1
+            if aTag < aCurrentTag:
+              aTag = aCurrentTag
+            anIter.Next()
+          aResultSO = aBuilder.NewObjectToTag(theFather, aTag)
+        else:
+          aResultSO = aBuilder.NewObject(theFather);
         aResultSO.SetAttrString("AttributeName", theName)
-        
-        
         if theObject is not None:
             anIOR = salome.orb.object_to_string(theObject)
             aResultSO.SetAttrString("AttributeIOR", anIOR)
             theObject.SetSO(aResultSO)
           
-            aType = theObject.GetShapeType()
             aAttr = aBuilder.FindOrCreateAttribute(aResultSO, "AttributePixMap")
             aPixmap = aAttr._narrow(salome.SALOMEDS.AttributePixMap)
+            aType = 0
+            if isGroup:
+              aType = SHAPERSTUDY_Object.__shape_types__[theObject.GetSelectionType()]
+            else:
+              aType = theObject.GetShapeType()
             aPixmap.SetPixMap(SHAPERSTUDY.ShaperIcons[aType])
             
         # add a red-reference that means that this is an active reference to SHAPER result
-        aSub = aBuilder.NewObject(aResultSO)
-        aBuilder.Addreference(aSub, aResultSO)
+        if not isGroup:
+          aSub = aBuilder.NewObjectToTag(aResultSO, 1)
+          aBuilder.Addreference(aSub, aResultSO)
 
         return aResultSO
 
@@ -123,6 +142,7 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         Add a sub-shape defined by indices in theIndices
         (contains unique IDs of sub-shapes inside theMainShape)
         """
+        # no sub-shapes for the moment
         go = SHAPERSTUDY_Object()._this()
         return go
 
@@ -131,27 +151,28 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         """
         Removes the object from the component
         """
+        # can not be removed for the moment
         return
 
     def GetIFieldOperations( self ):
         """
         """
-        return SHAPERSTUDY_IFieldOperations()
+        return SHAPERSTUDY_IOperations.SHAPERSTUDY_IFieldOperations().this()
 
     def GetIGroupOperations( self ):
         """
         """
-        return SHAPERSTUDY_IGroupOperations()
+        return SHAPERSTUDY_IOperations.SHAPERSTUDY_IGroupOperations()._this()
 
     def GetIShapesOperations( self ):
         """
         """
-        return SHAPERSTUDY_IShapesOperations()
+        return SHAPERSTUDY_IOperations.SHAPERSTUDY_IShapesOperations()._this()
 
     def GetIMeasureOperations( self ):
         """
         """
-        return SHAPERSTUDY_IMeasureOperations()
+        return SHAPERSTUDY_IOperations.SHAPERSTUDY_IMeasureOperations()._this()
 
     def GetStringFromIOR( self, theObject ):
         """
@@ -185,28 +206,38 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         """
         aResult = "" # string-pairs of internal entries and shape streams
         aStudy = getStudy()
-        aSOIter = aStudy.NewChildIterator(findOrCreateComponent())
-        while aSOIter.More():
-          aSOVal = aSOIter.Value()
-          aSOList = [aSOVal]
-          # collect also the history shape objects
-          aRes, aHistSO = aSOVal.FindSubObject(2)
-          if aRes:
-            aSOIter2 = aStudy.NewChildIterator(aHistSO)
-            while aSOIter2.More():
-              aSOList.append(aSOIter2.Value())
-              aSOIter2.Next()
-          # for each sobject export shapes stream if exists
-          for aSO in aSOList:
+        # get all sub-SObjects with IOR defined
+        anIters = [aStudy.NewChildIterator(findOrCreateComponent())]
+        aSOList = []
+        while len(anIters):
+          aLast = anIters[len(anIters) - 1]
+          if aLast.More():
+            aSO = aLast.Value()
             anIOR = aSO.GetIOR()
-            anObj = salome.orb.string_to_object(anIOR)
-            if isinstance(anObj, SHAPERSTUDY_ORB._objref_SHAPER_Object):
-              if len(aResult):
-                aResult = aResult + '|'
-              aResult = aResult + anObj.GetEntry() + "|" + anObj.GetShapeStream().decode()
-              aResult = aResult + "|" + anObj.GetOldShapeStream().decode()
+            if len(anIOR):
+              aSOList.append(aSO)
+              anIters.append(aStudy.NewChildIterator(aSO))
+            aLast.Next()
+          else:
+            anIters.remove(aLast)
 
-          aSOIter.Next()
+        for aSO in aSOList: # for each sobject export shapes stream if exists
+          anIOR = aSO.GetIOR()
+          anObj = salome.orb.string_to_object(anIOR)
+          if isinstance(anObj, SHAPERSTUDY_ORB._objref_SHAPER_Group):
+            if len(aResult):
+              aResult = aResult + '|'
+            # store internal entry, type and list of indices of the group selection (separated by spaces)
+            aResult = aResult + anObj.GetEntry() + "|" + str(anObj.GetSelectionType())
+            aSelList = anObj.GetSelection()
+            aResult = aResult + "|" + str(' '.join(str(anI) for anI in aSelList))
+          elif isinstance(anObj, SHAPERSTUDY_ORB._objref_SHAPER_Object):
+            if len(aResult):
+              aResult = aResult + '|'
+            # store internal entry, current and old shapes in BRep format
+            aResult = aResult + anObj.GetEntry() + "|" + anObj.GetShapeStream().decode()
+            aResult = aResult + "|" + anObj.GetOldShapeStream().decode()
+
         return aResult.encode()
 
     def Load( self, component, stream, URL, isMultiFile ):
@@ -227,14 +258,22 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
           elif aSubNum == 2:
             aNewShapeStream = aSub
             aSubNum = 3
-          else: # create shapes by BRep in the stream: set old first then new
-            aShapeObj = SHAPERSTUDY_Object.SHAPERSTUDY_Object()
-            if len(aSub):
-              aShapeObj.SetShapeByStream(aSub)
-            aShapeObj.SetShapeByStream(aNewShapeStream)
-            aShapeObj.SetEntry(anId)
-            anIOR = salome.orb.object_to_string(aShapeObj._this())
-            __entry2IOR__[anId] = anIOR
+          else: # create objects by 3 arguments
+            anObj = None
+            if anId.startswith('group'): # group object
+              anObj = SHAPERSTUDY_Object.SHAPERSTUDY_Group()
+              if len(aNewShapeStream):
+                anObj.SetSelection([int(anI) for anI in aSub.split(' ')])
+              anObj.SetSelectionType(int(aNewShapeStream))
+            else: # shape object by BRep in the stream: set old first then new
+              anObj = SHAPERSTUDY_Object.SHAPERSTUDY_Object()
+              if len(aSub):
+                anObj.SetShapeByStream(aSub)
+              anObj.SetShapeByStream(aNewShapeStream)
+            if anObj:
+              anObj.SetEntry(anId)
+              anIOR = salome.orb.object_to_string(anObj._this())
+              __entry2IOR__[anId] = anIOR
             aSubNum = 1
 
         return 1

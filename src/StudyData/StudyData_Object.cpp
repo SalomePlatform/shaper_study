@@ -22,6 +22,7 @@
 
 #include "StudyData_Object.h"
 
+#include <TopExp.hxx>
 #include <BRep_Builder.hxx>
 #include <BRepTools.hxx>
 #include <BRepBuilderAPI_Copy.hxx>
@@ -33,6 +34,11 @@ StudyData_Object::StudyData_Object(const std::string theFile)
   BRepTools::Read(myShape, streamBrep, aBuilder);
   myTick = 1;
   myStream = theFile;
+}
+
+StudyData_Object::StudyData_Object()
+{
+  myTick = 0; // when shape is defined, it will be increased to 1
 }
 
 int StudyData_Object::type() const
@@ -80,4 +86,38 @@ int StudyData_Object::getTick() const
 void StudyData_Object::setTick(const int theValue)
 {
   myTick = theValue;
+}
+
+void StudyData_Object::SetShapeByPointer(const long long theShape)
+{
+  myOldShape = myShape;
+  myShape = *((TopoDS_Shape*)theShape);
+  std::ostringstream aStreamBrep;
+  if (!myShape.IsNull()) {
+    BRepTools::Write(myShape, aStreamBrep);
+  }
+  myOldStream = myStream;
+  myStream = aStreamBrep.str();
+  myTick++;
+}
+
+long long StudyData_Object::groupShape(long long theMainShape, const std::list<long> theSelection)
+{
+  if (myShape.IsNull()) { // compute the cashed shape
+    TopoDS_Shape* aShape = (TopoDS_Shape*)theMainShape;
+    TopTools_IndexedMapOfShape anIndices;
+    TopExp::MapShapes(*aShape, anIndices);
+
+    TopoDS_Compound aResult;
+    BRep_Builder aBuilder;
+    aBuilder.MakeCompound(aResult);
+
+    std::list<long>::const_iterator aSelIter = theSelection.cbegin();
+    for(; aSelIter != theSelection.cend(); aSelIter++) {
+      TopoDS_Shape aSel = anIndices.FindKey(*aSelIter);
+      aBuilder.Add(aResult, aSel);
+    }
+    myShape = aResult;
+  }
+  return (long long)(&myShape);
 }

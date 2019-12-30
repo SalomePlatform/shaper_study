@@ -21,12 +21,19 @@
 #
 
 import SHAPERSTUDY_ORB__POA
+import SHAPERSTUDY_Object
+import GEOM
+from SHAPERSTUDY_utils import getStudy
+
+import StudyData_Swig
 
 class SHAPERSTUDY_IShapesOperations(SHAPERSTUDY_ORB__POA.IShapesOperations):
     """
     Construct an instance of SHAPERSTUDY IShapesOperations.
     """
     def __init__ ( self, *args):
+        self.done = False
+        self.myop = StudyData_Swig.StudyData_Operation()
         pass
 
     def GetAllSubShapesIDs( self, theShape, theShapeType, isSorted ):
@@ -39,7 +46,9 @@ class SHAPERSTUDY_IShapesOperations(SHAPERSTUDY_ORB__POA.IShapesOperations):
             isSorted If this parameter is TRUE, sub-shapes will be
             sorted by coordinates of their gravity centers.
         """
-        return [1]
+        aList = self.myop.GetAllSubShapesIDs(theShape.getShape(), theShapeType, isSorted)
+        self.done = not aList.empty()
+        return aList
 
     def GetSharedShapes( self, theShape1, theShape2, theShapeType ):
         """
@@ -50,25 +59,38 @@ class SHAPERSTUDY_IShapesOperations(SHAPERSTUDY_ORB__POA.IShapesOperations):
             theShape2 Shape to find shared sub-shapes with.
             theShapeType Type of sub-shapes to be retrieved.
         """
-        return [ SHAPERSTUDY_Object()._this() ]
+        aList = self.myop.GetSharedShapes(theShape1.getShape(), theShape2.getShape(), theShapeType)
+        self.done = not aList.empty()
+        return aList
 
     def GetSubShapeIndex( self, theMainShape, theSubShape ):
         """
         Get global index of theSubShape in theMainShape.
         """
-        return 2
+        anIndex = self.myop.GetSubShapeIndex(theMainShape.getShape(), theSubShape.getShape())
+        self.done = anIndex != 0
+        return anIndex
 
     def GetSubShape( self, theMainShape, theID ):
         """
         Get a sub-shape defined by its unique ID within theMainShape
         """
-        return SHAPERSTUDY_Object()._this()
+        aShape = self.myop.GetSubShape(theMainShape.getShape(), theID)
+        self.done = aShape != 0
+        if not self.done:
+          return None
+
+        # create a shape-object that contain the internal shape only
+        aShapeObj = SHAPERSTUDY_Object.SHAPERSTUDY_Object()
+        aShapeObj.SetShapeByPointer(aShape)
+        return aShapeObj
 
     def GetInPlace( self, theShapeWhere, theShapeWhat ):
         """
         Get sub-shape(s) of \a theShapeWhere, which are
         coincident with \a theShapeWhat or could be a part of it.
         """
+        # not done
         return SHAPERSTUDY_Object()._this()
         
     def GetInPlaceMap( self, theShapeWhere, theShapeWhat ):
@@ -76,29 +98,55 @@ class SHAPERSTUDY_IShapesOperations(SHAPERSTUDY_ORB__POA.IShapesOperations):
         A sort of GetInPlace functionality, returning for each sub-shape ID of
         \a theShapeWhat a list of corresponding sub-shape IDs of \a theShapeWhere.
         """
+        # not done
         return [[]]
 
     def IsDone( self ):
         """
         To know, if the operation was successfully performed
         """
-        return False
+        return self.done
 
     pass
-    
 
 class SHAPERSTUDY_IGroupOperations(SHAPERSTUDY_ORB__POA.IGroupOperations):
     """
     Construct an instance of SHAPERSTUDY IShapesOperations.
     """
     def __init__ ( self, *args):
+        self.done = False
         pass
 
     def CreateGroup( self, theMainShape, theShapeType ):
         """
         Creates a new group which will store sub-shapes of theMainShape
         """
-        return SHAPERSTUDY_Object()._this()
+        if theShapeType != 7 and theShapeType != 6 and theShapeType != 4 and theShapeType != 2: 
+          print("Error: You could create group of only next type: vertex, edge, face or solid")
+          return None
+
+        aGroup = SHAPERSTUDY_Object.SHAPERSTUDY_Group()
+        aGroupPtr = aGroup._this()
+        aGroupPtr.SetType(37) # the group type
+        aGroup.SetSelectionType(theShapeType) # create a new field specific for the group python object
+        self.done = True
+        return aGroupPtr
+
+    def FindGroup(self, theOwner, theEntry):
+        """
+        Searches existing group of theOwner shape by the entry. Returns NULL if can not find.
+        """
+        aStudy = getStudy()
+        anIter = aStudy.NewChildIterator(theOwner.GetSO())
+        while anIter.More():
+          aGroupObj = anIter.Value().GetObject()
+          if aGroupObj:
+            if aGroupObj.GetEntry() == theEntry:
+              self.done = True
+              return aGroupObj
+          anIter.Next()
+        self.done = False
+        return None # not found
 
     def UnionList( self, theGroup, theSubShapes ):
         """
@@ -108,31 +156,37 @@ class SHAPERSTUDY_IGroupOperations(SHAPERSTUDY_ORB__POA.IGroupOperations):
             theGroup is a GEOM group to which the new sub-shapes are added.
             theSubShapes is a list of sub-shapes to be added.
         """
+        # Not needed while SHAPER-STUDY has no sub-shapes in the structure, so, 
+        # theSubShapes can not be filled or treated
         return
 
     def IsDone( self ):
         """
         To know, if the operation was successfully performed
         """
-        return False
+        return self.done
 
     def GetMainShape( self, theGroup ):
         """
         Returns a main shape associated with the group
         """
-        return SHAPERSTUDY_Object()._this()
+        aSO = theGroup.GetSO()
+        aFatherSO = aSO.GetFather()
+        return aFatherSO.GetObject()
+
+        return None # not found
 
     def GetType( self, theGroup ):
         """
         Returns a type (int) of sub-objects stored in the group
         """
-        return SHAPERSTUDY_Object()._this()
+        return theGroup.GetSelectionType()
 
     def GetObjects( self, theGroup ):
         """
         Returns a list of sub-objects ID stored in the group
         """
-        return [2]
+        return theGroup.GetSelection()
 
     pass
 

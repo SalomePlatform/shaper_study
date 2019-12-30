@@ -47,8 +47,9 @@ SET(_link_LIBRARIES
 
 # header files / no moc processing
 SET(STUDYDATA_HEADERS
-	StudyData.h
+    StudyData.h
     StudyData_Object.h
+    StudyData_Operation.h
 )
 
 # --- sources ---
@@ -56,6 +57,7 @@ SET(STUDYDATA_HEADERS
 # sources / static
 SET(STUDYDATA_SOURCES
     StudyData_Object.cpp
+    StudyData_Operation.cpp
 )
 
 # --- rules ---

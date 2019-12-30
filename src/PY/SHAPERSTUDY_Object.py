@@ -20,6 +20,7 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
+import SHAPERSTUDY_ORB
 import SHAPERSTUDY_ORB__POA
 import GEOM
 from SHAPERSTUDY_utils import getEngine, getStudy
@@ -41,6 +42,8 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
     def __init__ ( self, *args):
         self.SO = None
         self.data = None
+        self.entry = None
+        self.type = 1 # by default it is a shape (Import feature in GEOMImpl_Types.hxx)
         pass
 
     def GetShapeType( self ):
@@ -72,7 +75,7 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
 
     def getShape( self ):
         """
-        Get the TopoDS_Shape, for colocated case only.
+        Get the TopoDS_Shape, for collocated case only.
         Called by GEOM_Client to get TopoDS_Shape pointer
         """
         if self.data is None:
@@ -130,8 +133,14 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
         Get internal type of operation created this object.
         In SMESH is used to find out if an object is GROUP (type == 37)
         """
-        # 1 corresponds to the Import feature (GEOMImpl_Types.hxx )
-        return 1
+        return self.type
+
+    def SetType( self, theType ):
+        """
+        Sets internal type of operation created this object.
+        In SMESH is used to find out if an object is GROUP (type == 37, for shape it is default=1)
+        """
+        self.type = theType
 
     def GetTick( self ):
         """
@@ -215,7 +224,92 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
         aDead.SetSO(aDeadSO)
         if self.GetTick() > 2:
           aDead.data.setTick(self.GetTick() - 1) # set the tick of an old shape
+        # make dead-copy also sub-groups
+        aSOIter = aStudy.NewChildIterator(self.SO)
+        while aSOIter.More():
+          aGroupSO = aSOIter.Value()
+          anIOR = aGroupSO.GetIOR()
+          if len(anIOR):
+            aGroup = salome.orb.string_to_object(anIOR)
+            if isinstance(aGroup, SHAPERSTUDY_ORB._objref_SHAPER_Group):
+              aDeadGroup = SHAPERSTUDY_Group()
+              aDeadGroupEntry = "dead" + str(anIndex) + "_" + aGroup.GetEntry()
+              aDeadGroup.SetEntry(aDeadGroupEntry)
+              aDeadGroup.SetShapeByPointer(aGroup.getShape())
+              aDeadGroup.SetSelectionType(aGroup.GetSelectionType())
+              aDeadGroup.SetSelection(aGroup.GetSelection())
+              aDeadGroupSO = aBuilder.NewObject(aDeadSO)
+              aDeadGroup.SetSO(aDeadGroupSO)
+              aDeadGroupSO.SetAttrString("AttributeName", aGroupSO.GetName() + " (" + str(anIndex) + ")")
+              aDeadGroupObj = aDeadGroup._this()
+              anIOR = salome.orb.object_to_string(aDeadGroupObj)
+              aDeadGroupSO.SetAttrString("AttributeIOR", anIOR)
+          aSOIter.Next()
+
         return aDeadObj
-          
+    
+    def SetShapeByPointer(self, theShape):
+        """
+        Sets the shape by the pointer to the TopoDS_Shape
+        """
+        if not self.data:
+          self.data = StudyData_Swig.StudyData_Object()
+        self.data.SetShapeByPointer(theShape)
 
     pass
+
+class SHAPERSTUDY_Group(SHAPERSTUDY_ORB__POA.SHAPER_Group, SHAPERSTUDY_Object):
+    """
+    Construct an instance of SHAPERSTUDY Group
+    """
+    def __init__ ( self, *args):
+        self.seltype = None
+        self.selection = []
+        self.SO = None
+        self.data = None
+        self.entry = None
+        pass
+
+    def SetSelectionType(self, theType):
+        """
+        Sets what is returned in the GEOM_IGroupOperations::GetType
+        """
+        self.seltype = theType
+
+    def GetSelectionType(self):
+        """
+        Returns the type of the selected sub-shapes
+        """
+        return self.seltype
+
+    def SetSelection(self, theSelection):
+        """
+        Sets what is returned in the GEOM_IGroupOperations::GetObjects
+        """
+        self.data = None # nullify the cashed shape when selection is changed
+        self.selection = theSelection
+
+    def GetSelection(self):
+        """
+        Returns the selected sub-shapes indices
+        """
+        return self.selection
+
+    def GetMainShape( self ):
+        """
+        Main shape is groups owner
+        """
+        return self.SO.GetFather().GetObject()
+
+    def getShape( self ):
+        """
+        Redefinition of the getShape method: here it creates a shape by the
+        main shape and the group index.
+        """
+        if not self.data:
+          self.data = StudyData_Swig.StudyData_Object()
+        # convert selection to long list
+        anArg = StudyData_Swig.LongList()
+        for l in self.selection:
+          anArg.append(l)
+        return self.data.groupShape(self.GetMainShape().getShape(), anArg)
