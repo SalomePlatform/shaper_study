@@ -115,31 +115,55 @@ interface IGroupOperations  : GEOM::GEOM_IGroupOperations
   SHAPER_Group FindGroup(in SHAPER_Object theOwner, in string theEntry);
 };
 
+interface SHAPER_Field             : SHAPER_Group
+{
+  /*!
+  *  \brief Sets the type of values in the field
+  */
+  void SetValuesType(in short theType);
+
+  /*!
+  *  \brief Sets the list of time step IDs in the field
+  */
+  void SetSteps(in GEOM::ListOfLong theSteps);
+
+  /*!
+  *  \brief Sets the names of components
+  */
+  void SetComponents( in GEOM::string_array theComponents );
+
+};
+
 interface IFieldOperations  : GEOM::GEOM_IFieldOperations
 {
+  /*!
+  *  \brief Searches existing field of theOwner shape by the entry. Returns NULL if can not find.
+  */
+  SHAPER_Field FindField(in SHAPER_Object theOwner, in string theEntry);
+  /*!
+  *  \brief Creates a field of theMainShape.
+  */
+  SHAPER_Field CreateFieldByType(
+    in GEOM::GEOM_Object theMainShape, in long theShapeType);
 };
 
 interface IMeasureOperations  : GEOM::GEOM_IMeasureOperations
 {
 };
 
-interface Field             : GEOM::GEOM_Field
+interface SHAPER_FieldStep         : GEOM::GEOM_FieldStep
 {
 };
 
-interface FieldStep         : GEOM::GEOM_FieldStep
+interface SHAPER_DoubleFieldStep   : GEOM::GEOM_DoubleFieldStep
 {
 };
 
-interface DoubleFieldStep   : GEOM::GEOM_DoubleFieldStep
+interface SHAPER_IntFieldStep      : GEOM::GEOM_IntFieldStep
 {
 };
 
-interface IntFieldStep      : GEOM::GEOM_IntFieldStep
-{
-};
-
-interface BoolFieldStep     : GEOM::GEOM_BoolFieldStep
+interface SHAPER_BoolFieldStep     : GEOM::GEOM_BoolFieldStep
 {
 };
 

@@ -192,7 +192,7 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
         Returns true if the current object has connection to a parametrical model
         which can be modified by parameters change.
         """
-        return not self.IsDead()
+        return not self.IsDead() and self.type == 1 # only break link for shapes are accessible now
 
     def IsDead(self):
         """
@@ -268,6 +268,7 @@ class SHAPERSTUDY_Group(SHAPERSTUDY_ORB__POA.SHAPER_Group, SHAPERSTUDY_Object):
         self.SO = None
         self.data = None
         self.entry = None
+        self.type = 37 # a group type
         pass
 
     def SetSelectionType(self, theType):
@@ -313,3 +314,73 @@ class SHAPERSTUDY_Group(SHAPERSTUDY_ORB__POA.SHAPER_Group, SHAPERSTUDY_Object):
         for l in self.selection:
           anArg.append(l)
         return self.data.groupShape(self.GetMainShape().getShape(), anArg)
+
+    pass
+
+class SHAPERSTUDY_Field(SHAPERSTUDY_ORB__POA.SHAPER_Field, SHAPERSTUDY_Group):
+    """
+    Construct an instance of SHAPERSTUDY Field (inherits selection from a Group object)
+    """
+    def __init__ ( self, *args):
+        self.seltype = None
+        self.selection = []
+        self.SO = None
+        self.data = None
+        self.entry = None
+        self.type = 52 # a field type
+        self.valtype = None # type of the values
+        self.steps = [] # list of long
+        self.components = [] # string array, names of the components
+        self.name = None # name, string
+        pass
+
+    def SetValuesType( self, theType ):
+      """
+      Sets the type of values in the field
+      """
+      self.valtype = theType
+
+    def GetDataType( self ):
+      """
+      Returns the type of values in the field in terms of GEOM enumeration
+      """
+      if self.valtype == 0:
+        return GEOM.FDT_Bool
+      elif self.valtype == 1:
+        return GEOM.FDT_Int
+      elif self.valtype == 2:
+        return GEOM.FDT_Double
+      elif self.valtype == 3:
+        return GEOM.FDT_String
+      return None # unknown case
+
+    def SetSteps( self, theSteps ):
+      self.steps = theSteps
+
+    def GetSteps( self ):
+      return self.steps
+
+    def SetComponents( self, theComponents ):
+      self.components = theComponents
+    
+    def GetComponents( self ):
+      return self.components
+
+    def GetDimension( self ):
+      aShapeType = SHAPERSTUDY_Group.GetSelectionType()
+      if aShapeType == 8:
+        return -1 # whole part
+      elif aShapeType == 7:
+        return 0 # vertex
+      elif aShapeType == 6:
+        return 1 # edge
+      elif aShapeType == 4:
+        return 2 # face
+      elif aShapeType == 2:
+        return 3 # solid
+      return None # unknown case
+
+    def GetShape( self ):
+      return SHAPERSTUDY_Group.getShape()
+
+    pass

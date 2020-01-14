@@ -21,6 +21,7 @@
 #
 
 import SHAPERSTUDY_ORB__POA
+import SHAPERSTUDY_ORB
 import SHAPERSTUDY_Object
 import GEOM
 from SHAPERSTUDY_utils import getStudy
@@ -127,7 +128,6 @@ class SHAPERSTUDY_IGroupOperations(SHAPERSTUDY_ORB__POA.IGroupOperations):
 
         aGroup = SHAPERSTUDY_Object.SHAPERSTUDY_Group()
         aGroupPtr = aGroup._this()
-        aGroupPtr.SetType(37) # the group type
         aGroup.SetSelectionType(theShapeType) # create a new field specific for the group python object
         self.done = True
         return aGroupPtr
@@ -174,8 +174,6 @@ class SHAPERSTUDY_IGroupOperations(SHAPERSTUDY_ORB__POA.IGroupOperations):
         aFatherSO = aSO.GetFather()
         return aFatherSO.GetObject()
 
-        return None # not found
-
     def GetType( self, theGroup ):
         """
         Returns a type (int) of sub-objects stored in the group
@@ -197,11 +195,46 @@ class SHAPERSTUDY_IFieldOperations(SHAPERSTUDY_ORB__POA.IFieldOperations):
     def __init__ ( self, *args):
         pass
 
+    def CreateFieldByType( self, theMainShape, theShapeType):
+        """
+        Creates a new group which will store sub-shapes of theMainShape
+        """
+        if theShapeType != 8 and theShapeType != 7 and theShapeType != 6 and theShapeType != 4 and theShapeType != 2: 
+          print("Error: You could create field of only next type: vertex, edge, face or solid, whole part")
+          return None
+
+        aField = SHAPERSTUDY_Object.SHAPERSTUDY_Field()
+        aFieldPtr = aField._this()
+        aField.SetSelectionType(theShapeType) # create a new field specific for the group python object
+        return aFieldPtr
+
+    def FindField(self, theOwner, theEntry):
+        """
+        Searches existing field of theOwner shape by the entry. Returns NULL if can not find.
+        """
+        aStudy = getStudy()
+        anIter = aStudy.NewChildIterator(theOwner.GetSO())
+        while anIter.More():
+          aFieldObj = anIter.Value().GetObject()
+          if aFieldObj:
+            if aFieldObj.GetEntry() == theEntry:
+              return aFieldObj
+          anIter.Next()
+        return None # not found
+
+
     def GetFields( self, shape ):
         """
         Returns all fields on a shape
         """
-        return [ SHAPERSTUDY_Field() ]
+        aResList = []
+        aStudy = getStudy()
+        anIter = aStudy.NewChildIterator(shape.GetSO())
+        while anIter.More():
+          aFieldObj = anIter.Value().GetObject()
+          if aFieldObj and isinstance(aFieldObj, SHAPERSTUDY_ORB._objref_SHAPER_Field):
+            aResList.append(aFieldObj)
+        return aResList
 
     pass
 
