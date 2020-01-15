@@ -34,8 +34,34 @@ __shape_types__ = {
   3:GEOM.SHELL, 4:GEOM.FACE, 5:GEOM.WIRE,
   6:GEOM.EDGE, 7:GEOM.VERTEX, 8:GEOM.SHAPE, 9:GEOM.FLAT}
 
+class SHAPERSTUDY_GenericObject:
+    """
+    Implement methods of SALOME::GenericObj
+    """
 
-class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object):
+    def Register(self):
+        """
+        Increase the reference count (mark as used by another object).
+        """
+        return
+
+    def UnRegister(self):
+        """
+        Decrease the reference count (release by another object)
+        """
+        return
+
+    def Destroy(self):
+        """
+        Obsolete, left for compatibility reasons only. Use UnRegister() instead
+        """
+        return
+
+    pass
+
+
+class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object,
+                         SHAPERSTUDY_GenericObject):
     """
     Construct an instance of SHAPERSTUDY Object.
     """

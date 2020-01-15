@@ -28,7 +28,8 @@ from SHAPERSTUDY_utils import getStudy
 
 import StudyData_Swig
 
-class SHAPERSTUDY_IShapesOperations(SHAPERSTUDY_ORB__POA.IShapesOperations):
+class SHAPERSTUDY_IShapesOperations(SHAPERSTUDY_ORB__POA.IShapesOperations,
+                                    SHAPERSTUDY_Object.SHAPERSTUDY_GenericObject):
     """
     Construct an instance of SHAPERSTUDY IShapesOperations.
     """
@@ -84,7 +85,7 @@ class SHAPERSTUDY_IShapesOperations(SHAPERSTUDY_ORB__POA.IShapesOperations):
         # create a shape-object that contain the internal shape only
         aShapeObj = SHAPERSTUDY_Object.SHAPERSTUDY_Object()
         aShapeObj.SetShapeByPointer(aShape)
-        return aShapeObj
+        return aShapeObj._this()
 
     def GetInPlace( self, theShapeWhere, theShapeWhat ):
         """
