@@ -216,7 +216,7 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
             anIOR = aSO.GetIOR()
             if len(anIOR):
               aSOList.append(aSO)
-              anIters.append(aStudy.NewChildIterator(aSO))
+            anIters.append(aStudy.NewChildIterator(aSO))
             aLast.Next()
           else:
             anIters.remove(aLast)
