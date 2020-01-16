@@ -261,7 +261,7 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
             anObj = None
             if anId.startswith('group'): # group object
               anObj = SHAPERSTUDY_Object.SHAPERSTUDY_Group()
-              if len(aNewShapeStream):
+              if len(aSub):
                 anObj.SetSelection([int(anI) for anI in aSub.split(' ')])
               anObj.SetSelectionType(int(aNewShapeStream))
             else: # shape object by BRep in the stream: set old first then new

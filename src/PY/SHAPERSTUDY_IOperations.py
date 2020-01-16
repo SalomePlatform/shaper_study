@@ -50,7 +50,10 @@ class SHAPERSTUDY_IShapesOperations(SHAPERSTUDY_ORB__POA.IShapesOperations,
         """
         aList = self.myop.GetAllSubShapesIDs(theShape.getShape(), theShapeType, isSorted)
         self.done = not aList.empty()
-        return aList
+        aResult = []
+        for i in aList:
+          aResult.append(i)
+        return aResult
 
     def GetSharedShapes( self, theShape1, theShape2, theShapeType ):
         """
@@ -63,7 +66,10 @@ class SHAPERSTUDY_IShapesOperations(SHAPERSTUDY_ORB__POA.IShapesOperations,
         """
         aList = self.myop.GetSharedShapes(theShape1.getShape(), theShape2.getShape(), theShapeType)
         self.done = not aList.empty()
-        return aList
+        aResult = []
+        for i in aList:
+          aResult.append(i)
+        return aResult
 
     def GetSubShapeIndex( self, theMainShape, theSubShape ):
         """
@@ -216,10 +222,11 @@ class SHAPERSTUDY_IFieldOperations(SHAPERSTUDY_ORB__POA.IFieldOperations):
         aStudy = getStudy()
         anIter = aStudy.NewChildIterator(theOwner.GetSO())
         while anIter.More():
-          aFieldObj = anIter.Value().GetObject()
-          if aFieldObj:
-            if aFieldObj.GetEntry() == theEntry:
-              return aFieldObj
+          if len(anIter.Value().GetIOR()):
+            aFieldObj = anIter.Value().GetObject()
+            if aFieldObj:
+              if aFieldObj.GetEntry() == theEntry:
+                return aFieldObj
           anIter.Next()
         return None # not found
 
@@ -235,6 +242,7 @@ class SHAPERSTUDY_IFieldOperations(SHAPERSTUDY_ORB__POA.IFieldOperations):
           aFieldObj = anIter.Value().GetObject()
           if aFieldObj and isinstance(aFieldObj, SHAPERSTUDY_ORB._objref_SHAPER_Field):
             aResList.append(aFieldObj)
+          anIter.Next()
         return aResList
 
     pass

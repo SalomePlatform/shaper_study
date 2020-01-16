@@ -115,7 +115,7 @@ interface IGroupOperations  : GEOM::GEOM_IGroupOperations
   SHAPER_Group FindGroup(in SHAPER_Object theOwner, in string theEntry);
 };
 
-interface SHAPER_Field             : SHAPER_Group
+interface SHAPER_Field             : GEOM::GEOM_Field
 {
   /*!
   *  \brief Sets the type of values in the field
@@ -131,6 +131,55 @@ interface SHAPER_Field             : SHAPER_Group
   *  \brief Sets the names of components
   */
   void SetComponents( in GEOM::string_array theComponents );
+  /*!
+  *  \brief Erases all steps of this field
+  */
+  void ClearFieldSteps();
+
+  /*!
+  *  \brief Appends a step data to this field
+  */
+  void AddFieldStep( in long theStampID, in long theStepID, in GEOM::ListOfDouble theValues);
+
+
+  /*!
+  *  \brief Sets what is returned in the GEOM_IGroupOperations::GetType
+  */
+  void SetSelectionType(in long theType);
+  /*!
+  *  \brief Returns the type of the selected sub-shapes
+  */
+  long GetSelectionType();
+  /*!
+  *  \brief Sets what is returned in the GEOM_IGroupOperations::GetObjects
+  */
+  void SetSelection(in GEOM::ListOfLong theSelection);
+  /*!
+  *  \brief Returns the selected sub-shapes indices
+  */
+  GEOM::ListOfLong GetSelection();
+
+
+  /*!
+  *  \brief Sets the internal entry of the object, common for all objects in SHAPER-STUDY
+  */
+  void SetEntry( in string theInternalEntry );
+  /*!
+  *  \brief Sets SObject of this object (when it is published)
+  */
+  void SetSO( in SALOMEDS::SObject theInternalEntry );
+  /*!
+  *  \brief Returns SObject of this object
+  */
+  SALOMEDS::SObject GetSO();
+  /*!
+  *  \brief Returns true if shape is already dead
+  */
+  boolean IsDead();
+  /*!
+  *  \brief Makes the dead-copy of the shape and returns it
+  */
+  SHAPER_Object MakeDead();
 
 };
 
@@ -143,15 +192,10 @@ interface IFieldOperations  : GEOM::GEOM_IFieldOperations
   /*!
   *  \brief Creates a field of theMainShape.
   */
-  SHAPER_Field CreateFieldByType(
-    in GEOM::GEOM_Object theMainShape, in long theShapeType);
+  SHAPER_Field CreateFieldByType(in GEOM::GEOM_Object theMainShape, in long theShapeType);
 };
 
 interface IMeasureOperations  : GEOM::GEOM_IMeasureOperations
-{
-};
-
-interface SHAPER_FieldStep         : GEOM::GEOM_FieldStep
 {
 };
 

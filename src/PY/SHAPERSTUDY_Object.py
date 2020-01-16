@@ -63,7 +63,7 @@ class SHAPERSTUDY_GenericObject:
 class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object,
                          SHAPERSTUDY_GenericObject):
     """
-    Construct an instance of SHAPERSTUDY Object.
+    Constructs an instance of SHAPERSTUDY Object.
     """
     def __init__ ( self, *args):
         self.SO = None
@@ -266,7 +266,8 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object,
               aDeadGroup.SetSelection(aGroup.GetSelection())
               aDeadGroupSO = aBuilder.NewObject(aDeadSO)
               aDeadGroup.SetSO(aDeadGroupSO)
-              aDeadGroupSO.SetAttrString("AttributeName", aGroupSO.GetName() + " (" + str(anIndex) + ")")
+              # 15.01.20 groups and fields names stays the same
+              #aDeadGroupSO.SetAttrString("AttributeName", aGroupSO.GetName() + " (" + str(anIndex) + ")")
               aDeadGroupObj = aDeadGroup._this()
               anIOR = salome.orb.object_to_string(aDeadGroupObj)
               aDeadGroupSO.SetAttrString("AttributeIOR", anIOR)
@@ -286,7 +287,7 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object,
 
 class SHAPERSTUDY_Group(SHAPERSTUDY_ORB__POA.SHAPER_Group, SHAPERSTUDY_Object):
     """
-    Construct an instance of SHAPERSTUDY Group
+    Constructs an instance of SHAPERSTUDY Group
     """
     def __init__ ( self, *args):
         self.seltype = None
@@ -345,7 +346,7 @@ class SHAPERSTUDY_Group(SHAPERSTUDY_ORB__POA.SHAPER_Group, SHAPERSTUDY_Object):
 
 class SHAPERSTUDY_Field(SHAPERSTUDY_ORB__POA.SHAPER_Field, SHAPERSTUDY_Group):
     """
-    Construct an instance of SHAPERSTUDY Field (inherits selection from a Group object)
+    Constructs an instance of SHAPERSTUDY Field (inherits selection from a Group object)
     """
     def __init__ ( self, *args):
         self.seltype = None
@@ -358,6 +359,7 @@ class SHAPERSTUDY_Field(SHAPERSTUDY_ORB__POA.SHAPER_Field, SHAPERSTUDY_Group):
         self.steps = [] # list of long
         self.components = [] # string array, names of the components
         self.name = None # name, string
+        self.fieldsteps = {} # FieldSteps objects identified by step ID
         pass
 
     def SetValuesType( self, theType ):
@@ -380,6 +382,12 @@ class SHAPERSTUDY_Field(SHAPERSTUDY_ORB__POA.SHAPER_Field, SHAPERSTUDY_Group):
         return GEOM.FDT_String
       return None # unknown case
 
+    def GetShape ( self ):
+      """
+      Returns the shape the field lies on
+      """
+      return super().GetMainShape()
+
     def SetSteps( self, theSteps ):
       self.steps = theSteps
 
@@ -393,7 +401,7 @@ class SHAPERSTUDY_Field(SHAPERSTUDY_ORB__POA.SHAPER_Field, SHAPERSTUDY_Group):
       return self.components
 
     def GetDimension( self ):
-      aShapeType = SHAPERSTUDY_Group.GetSelectionType()
+      aShapeType = super().GetSelectionType()
       if aShapeType == 8:
         return -1 # whole part
       elif aShapeType == 7:
@@ -406,7 +414,111 @@ class SHAPERSTUDY_Field(SHAPERSTUDY_ORB__POA.SHAPER_Field, SHAPERSTUDY_Group):
         return 3 # solid
       return None # unknown case
 
-    def GetShape( self ):
-      return SHAPERSTUDY_Group.getShape()
+    def ClearFieldSteps( self ):
+       self.fieldsteps = {}
+
+    def AddFieldStep( self, theStampID, theStepID, theValues):
+      aFieldStep = None
+      if self.valtype == 0:
+        aFieldStep = SHAPER_BoolFieldStep()
+      elif self.valtype == 1:
+        aFieldStep = SHAPER_IntFieldStep()
+      elif self.valtype == 2:
+        aFieldStep = SHAPER_DoubleFieldStep()
+      
+      aFieldStep.SetStep(theStampID, theStepID, theValues)
+      self.fieldsteps[theStepID] = aFieldStep._this()
+
+    def GetStep( self, theStepID ):
+       return self.fieldsteps[theStepID]
+
+    pass
+
+class SHAPER_FieldStep:
+    """
+    Base class for all step-classes
+    """
+    def __init__ ( self, *args):
+        self.stamp = None  # long, ID of stamp
+        self.step = None   # long, ID of step
+        self.values = None # array of values of the needed type
+
+    """
+    Defines all parameters of the step
+    """
+    def SetStep( self, theStamp, theStep, theValues ):
+        self.stamp = theStamp
+        self.step = theStep
+        self.values = theValues
+     
+    """
+    Returns stamp ID
+    """
+    def GetStamp( self ):
+        return self.stamp
+    """
+    Returns step ID
+    """
+    def GetID( self ):
+        return self.step
+    """
+    Returns a name of a sub-shape if the sub-shape is published in the study
+    """
+    def GetSubShape(self, theSubID):
+        # the SHAPER study does not support sub-shapes for now
+        return ""
+        
+
+class SHAPER_DoubleFieldStep(SHAPERSTUDY_ORB__POA.SHAPER_DoubleFieldStep, SHAPER_FieldStep):
+    """
+    Constructs an instance of SHAPERSTUDY Field step of type Double
+    """
+    def __init__ ( self, *args):
+        pass
+
+    """
+    Returns values as an array of the needed type
+    """
+    def GetValues( self ):
+        aResult = [] # to make any type of result, create a corba-type
+        for i in self.values:
+          aResult.append(float(i))
+        return aResult
+
+    pass
+
+class SHAPER_IntFieldStep(SHAPERSTUDY_ORB__POA.SHAPER_IntFieldStep, SHAPER_FieldStep):
+    """
+    Constructs an instance of SHAPERSTUDY Field step of type Double
+    """
+    def __init__ ( self, *args):
+        pass
+
+    """
+    Returns values as an array of the needed type
+    """
+    def GetValues( self ):
+        aResult = [] # to make any type of result, create a corba-type
+        for i in self.values:
+          aResult.append(int(i))
+        return aResult
+
+    pass
+
+class SHAPER_BoolFieldStep(SHAPERSTUDY_ORB__POA.SHAPER_BoolFieldStep, SHAPER_FieldStep):
+    """
+    Constructs an instance of SHAPERSTUDY Field step of type Double
+    """
+    def __init__ ( self, *args):
+        pass
+
+    """
+    Returns values as an array of the needed type
+    """
+    def GetValues( self ):
+        aResult = [] # to make any type of result, create a corba-type
+        for i in self.values:
+          aResult.append(int(i))
+        return aResult
 
     pass
