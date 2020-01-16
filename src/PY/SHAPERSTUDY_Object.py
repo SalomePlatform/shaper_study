@@ -38,23 +38,37 @@ class SHAPERSTUDY_GenericObject:
     """
     Implement methods of SALOME::GenericObj
     """
+    def __init__(self):
+        self.cnt=1
 
     def Register(self):
         """
         Increase the reference count (mark as used by another object).
         """
+        #print(self.GetEntry())
+        self.cnt+=1
+        #print("Register() --------- ", id(self), self.cnt)
         return
 
     def UnRegister(self):
         """
         Decrease the reference count (release by another object)
         """
+        self.cnt-=1
+        #print("UnRegister() --------- ", id(self), self.cnt)
+        if self.cnt <= 0:
+            from SHAPERSTUDY_utils import getPOA
+            poa = getPOA()
+            oid=poa.servant_to_id(self)
+            poa.deactivate_object(oid)
+            #print("UnRegister() --------- OK")
         return
 
     def Destroy(self):
         """
         Obsolete, left for compatibility reasons only. Use UnRegister() instead
         """
+        self.UnRegister()
         return
 
     pass
@@ -66,6 +80,7 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object,
     Constructs an instance of SHAPERSTUDY Object.
     """
     def __init__ ( self, *args):
+        SHAPERSTUDY_GenericObject.__init__(self)
         self.SO = None
         self.data = None
         self.entry = None
@@ -290,6 +305,7 @@ class SHAPERSTUDY_Group(SHAPERSTUDY_ORB__POA.SHAPER_Group, SHAPERSTUDY_Object):
     Constructs an instance of SHAPERSTUDY Group
     """
     def __init__ ( self, *args):
+        SHAPERSTUDY_GenericObject.__init__(self)
         self.seltype = None
         self.selection = []
         self.SO = None
@@ -349,6 +365,7 @@ class SHAPERSTUDY_Field(SHAPERSTUDY_ORB__POA.SHAPER_Field, SHAPERSTUDY_Group):
     Constructs an instance of SHAPERSTUDY Field (inherits selection from a Group object)
     """
     def __init__ ( self, *args):
+        SHAPERSTUDY_GenericObject.__init__(self)
         self.seltype = None
         self.selection = []
         self.SO = None
