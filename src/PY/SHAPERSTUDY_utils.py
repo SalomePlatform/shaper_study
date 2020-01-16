@@ -87,6 +87,17 @@ def getORB():
     return __orb__
 
 ###
+# Get POA
+###
+__poa__ = None
+def getPOA():
+    global __poa__
+    if __poa__ is None:
+        __poa__ = getORB().resolve_initial_references("RootPOA")
+        pass
+    return __poa__
+
+###
 # Get naming service instance
 ###
 __naming_service__ = None
