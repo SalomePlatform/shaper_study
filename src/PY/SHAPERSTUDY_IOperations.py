@@ -118,7 +118,8 @@ class SHAPERSTUDY_IShapesOperations(SHAPERSTUDY_ORB__POA.IShapesOperations,
 
     pass
 
-class SHAPERSTUDY_IGroupOperations(SHAPERSTUDY_ORB__POA.IGroupOperations):
+class SHAPERSTUDY_IGroupOperations(SHAPERSTUDY_ORB__POA.IGroupOperations,
+                                   SHAPERSTUDY_Object.SHAPERSTUDY_GenericObject):
     """
     Construct an instance of SHAPERSTUDY IShapesOperations.
     """
@@ -201,7 +202,8 @@ class SHAPERSTUDY_IGroupOperations(SHAPERSTUDY_ORB__POA.IGroupOperations):
 
     pass
 
-class SHAPERSTUDY_IFieldOperations(SHAPERSTUDY_ORB__POA.IFieldOperations):
+class SHAPERSTUDY_IFieldOperations(SHAPERSTUDY_ORB__POA.IFieldOperations,
+                                   SHAPERSTUDY_Object.SHAPERSTUDY_GenericObject):
     """
     Construct an instance of SHAPERSTUDY IFieldOperations.
     """
