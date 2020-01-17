@@ -223,12 +223,36 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
 
         for aSO in aSOList: # for each sobject export shapes stream if exists
           anIOR = aSO.GetIOR()
+          if not len(anIOR):
+            continue
           anObj = salome.orb.string_to_object(anIOR)
-          if isinstance(anObj, SHAPERSTUDY_ORB._objref_SHAPER_Group):
+          if type(anObj) == SHAPERSTUDY_ORB._objref_SHAPER_Group:
             if len(aResult):
               aResult = aResult + '|'
             # store internal entry, type and list of indices of the group selection (separated by spaces)
             aResult = aResult + anObj.GetEntry() + "|" + str(anObj.GetSelectionType())
+            aSelList = anObj.GetSelection()
+            aResult = aResult + "|" + str(' '.join(str(anI) for anI in aSelList))
+          elif type(anObj) == SHAPERSTUDY_ORB._objref_SHAPER_Field:
+            if len(aResult):
+              aResult = aResult + '|'
+            # same as for group, but in addition to the second string part - field specifics
+            aResult = aResult + anObj.GetEntry() + "|" + str(anObj.GetSelectionType())
+            aResult = aResult + " " + str(anObj.GetDataType()) # values type
+            aSteps = anObj.GetSteps()
+            aResult = aResult + " " + str(len(aSteps)) # number of steps
+            aComps = anObj.GetComponents()
+            aResult = aResult + " " + str(len(aComps)) # number of components
+            for aComp in aComps: # components strings: but before remove spaces and '|'
+              aCoded = aComp.replace(" ", "__space__").replace("|", "__vertical_bar__")
+              aResult = aResult + " " + aCoded
+            for aStepNum in range(len(aSteps)):
+              aVals = anObj.GetStep(aStepNum + 1).GetValues()
+              if aStepNum == 0:
+                aResult = aResult + " " + str(len(aVals)) # first the number of values in the step
+              aResult = aResult + " " + str(anObj.GetStep(aStepNum + 1).GetStamp()) # ID of stamp in step
+              for aVal in aVals:
+                aResult = aResult + " " + str(aVal) # all values of step
             aSelList = anObj.GetSelection()
             aResult = aResult + "|" + str(' '.join(str(anI) for anI in aSelList))
           elif isinstance(anObj, SHAPERSTUDY_ORB._objref_SHAPER_Object):
@@ -259,11 +283,45 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
             aSubNum = 3
           else: # create objects by 3 arguments
             anObj = None
-            if anId.startswith('group'): # group object
+            if anId.startswith('group') or (anId.startswith('dead') and anId.count("group") > 0): # group object
               anObj = SHAPERSTUDY_Object.SHAPERSTUDY_Group()
               if len(aSub):
                 anObj.SetSelection([int(anI) for anI in aSub.split(' ')])
               anObj.SetSelectionType(int(aNewShapeStream))
+            elif anId.startswith('field') or (anId.startswith('dead') and anId.count("field") > 0): # field object
+              anObj = SHAPERSTUDY_Object.SHAPERSTUDY_Field()
+              if len(aSub):
+                anObj.SetSelection([int(anI) for anI in aSub.split(' ')])
+              aParams = aNewShapeStream.split(" ")
+              anObj.SetSelectionType(int(aParams[0]))
+              aTypeStr = aParams[1]
+              if (aTypeStr == "FDT_Bool"):
+                anObj.SetValuesType(0)
+              elif (aTypeStr == "FDT_Int"):
+                anObj.SetValuesType(1)
+              elif (aTypeStr == "FDT_Double"):
+                anObj.SetValuesType(2)
+              elif (aTypeStr == "FDT_String"):
+                anObj.SetValuesType(3)
+              aSteps = []
+              aNumSteps = int(aParams[2])
+              for aVal in range(aNumSteps):
+                aSteps.append(aVal + 1)
+              anObj.SetSteps(aSteps)
+              aCompNum = int(aParams[3])
+              aCompNames = []
+              for aCompNameIndex in range(aCompNum):
+                aCompName = aParams[4 + aCompNameIndex].replace("__space__", " ").replace("__vertical_bar__", "|")
+                aCompNames.append(aCompName)
+              anObj.SetComponents(aCompNames)
+              aNumValsInStep = int(aParams[4 + aCompNum])
+              for aStepNum in range(aNumSteps):
+                aStepStartIndex = 4 + aCompNum + aStepNum * (aNumValsInStep + 1) + 1
+                aStampId = int(aParams[aStepStartIndex])
+                aVals = []
+                for aValIndex in range(aNumValsInStep):
+                  aVals.append(float(aParams[aStepStartIndex + aValIndex + 1]))
+                anObj.AddFieldStep(aStampId, aStepNum + 1, aVals)
             else: # shape object by BRep in the stream: set old first then new
               anObj = SHAPERSTUDY_Object.SHAPERSTUDY_Object()
               if len(aSub):
@@ -273,6 +331,7 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
               anObj.SetEntry(anId)
               anIOR = salome.orb.object_to_string(anObj._this())
               __entry2IOR__[anId] = anIOR
+              print("Store for entry "+anId+" IOR=", anIOR)
             aSubNum = 1
         return 1
         
@@ -282,16 +341,19 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         The internal entry of the Object is returned.
         """
         anObj = salome.orb.string_to_object(IOR)
-        if anObj and isinstance(anObj, SHAPERSTUDY_ORB._objref_SHAPER_Object):
+        if anObj and (isinstance(anObj, SHAPERSTUDY_ORB._objref_SHAPER_Object) or \
+                      isinstance(anObj, SHAPERSTUDY_ORB._objref_SHAPER_Field)):
           return anObj.GetEntry()
         return ""
 
     def LocalPersistentIDToIOR(self, sobject, persistentID, isMultiFile, isASCII):
         "Converts persistent ID of the object to its IOR."
         global __entry2IOR__
+        print("Requires presistent ID="+persistentID)
         if persistentID in __entry2IOR__:
           aRes = __entry2IOR__[persistentID]
           if len(aRes): # set SO from the study, the sobject param is temporary, don't store it
+            print("Found res="+str(aRes))
             salome.orb.string_to_object(aRes).SetSO(getStudy().FindObjectID(sobject.GetID()))
           return aRes
         return ""

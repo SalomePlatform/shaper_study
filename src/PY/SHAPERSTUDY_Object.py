@@ -358,6 +358,12 @@ class SHAPERSTUDY_Group(SHAPERSTUDY_ORB__POA.SHAPER_Group, SHAPERSTUDY_Object):
           anArg.append(l)
         return self.data.groupShape(self.GetMainShape().getShape(), anArg)
 
+    def GetShapeType( self ):
+        """
+        Group shape type is always compound.
+        """
+        return GEOM.COMPOUND;
+
     pass
 
 class SHAPERSTUDY_Field(SHAPERSTUDY_ORB__POA.SHAPER_Field, SHAPERSTUDY_Group):
