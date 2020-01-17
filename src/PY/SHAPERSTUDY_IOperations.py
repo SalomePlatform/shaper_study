@@ -34,6 +34,7 @@ class SHAPERSTUDY_IShapesOperations(SHAPERSTUDY_ORB__POA.IShapesOperations,
     Construct an instance of SHAPERSTUDY IShapesOperations.
     """
     def __init__ ( self, *args):
+        SHAPERSTUDY_Object.SHAPERSTUDY_GenericObject.__init__(self)
         self.done = False
         self.myop = StudyData_Swig.StudyData_Operation()
         pass
@@ -122,6 +123,7 @@ class SHAPERSTUDY_IGroupOperations(SHAPERSTUDY_ORB__POA.IGroupOperations):
     Construct an instance of SHAPERSTUDY IShapesOperations.
     """
     def __init__ ( self, *args):
+        SHAPERSTUDY_IShapesOperations.__init__(self)
         self.done = False
         pass
 
@@ -203,6 +205,7 @@ class SHAPERSTUDY_IFieldOperations(SHAPERSTUDY_ORB__POA.IFieldOperations):
     Construct an instance of SHAPERSTUDY IFieldOperations.
     """
     def __init__ ( self, *args):
+        SHAPERSTUDY_IShapesOperations.__init__(self)
         pass
 
     def CreateFieldByType( self, theMainShape, theShapeType):
@@ -256,6 +259,7 @@ class SHAPERSTUDY_IMeasureOperations(SHAPERSTUDY_ORB__POA.IMeasureOperations):
     Construct an instance of SHAPERSTUDY IMeasureOperations.
     """
     def __init__ ( self, *args):
+        SHAPERSTUDY_IShapesOperations.__init__(self)
         pass
 
     def GetVertexByIndex( self, theShape, theIndex, theUseOri ):
