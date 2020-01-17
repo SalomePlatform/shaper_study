@@ -181,6 +181,7 @@ class SHAPERSTUDY_IGroupOperations(SHAPERSTUDY_ORB__POA.IGroupOperations):
         """
         aSO = theGroup.GetSO()
         aFatherSO = aSO.GetFather()
+        anObj = aFatherSO.GetObject()
         if isinstance( anObj, SHAPERSTUDY_ORB._objref_SHAPER_Object ):
             return anObj
         else:

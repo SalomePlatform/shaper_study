@@ -61,6 +61,8 @@ class SHAPERSTUDY_GenericObject:
             poa = getPOA()
             oid=poa.servant_to_id(self)
             poa.deactivate_object(oid)
+            if hasattr(self,"SetSO"):
+                self.SetSO(None) # release a GenericObject
             #print("UnRegister() --------- OK")
         return
 
@@ -214,14 +216,19 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object,
         """
         Return the engine creating this object
         """
-        return getEngine()
+        e = getEngine()
+        return e._duplicate( e )
 
     def SetSO( self, theSO ):
         """
         Sets SObject of this object (when it is published)
         """
+        if self.SO:
+            self.SO.UnRegister()
         self.SO = theSO
-        
+        if self.SO:
+            self.SO.Register() # I hold a GenericObject!
+
     def GetSO( self ):
         """
         Returns SObject of this object
@@ -344,6 +351,12 @@ class SHAPERSTUDY_Group(SHAPERSTUDY_ORB__POA.SHAPER_Group, SHAPERSTUDY_Object):
         Main shape is groups owner
         """
         return self.SO.GetFather().GetObject()
+
+    def GetSubShapeIndices( self ):
+        """
+        Get a list of ID's of sub-shapes in the main shape.
+        """
+        return self.selection
 
     def getShape( self ):
         """

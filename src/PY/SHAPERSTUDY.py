@@ -102,19 +102,21 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         if not theFather:
           if isGroup:
             return None # Group may be added only under the shape-father
-          theFather = findOrCreateComponent()
+          theFatherSO = findOrCreateComponent()
+        else:
+          theFatherSO = theFather.GetSO()
         aResultSO = None
         if isGroup: # add group to the third sub-label or later to keep space for reference and "History"
           aTag = 3
-          anIter = aStudy.NewChildIterator(theFather)
+          anIter = aStudy.NewChildIterator(theFatherSO)
           while anIter.More():
             aCurrentTag = anIter.Value().Tag() + 1
             if aTag < aCurrentTag:
               aTag = aCurrentTag
             anIter.Next()
-          aResultSO = aBuilder.NewObjectToTag(theFather, aTag)
+          aResultSO = aBuilder.NewObjectToTag(theFatherSO, aTag)
         else:
-          aResultSO = aBuilder.NewObject(theFather);
+          aResultSO = aBuilder.NewObject(theFatherSO);
         aResultSO.SetAttrString("AttributeName", theName)
         if theObject is not None:
             anIOR = salome.orb.object_to_string(theObject)
@@ -128,7 +130,7 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
               aType = SHAPERSTUDY_Object.__shape_types__[theObject.GetSelectionType()]
             else:
               aType = theObject.GetShapeType()
-            aPixmap.SetPixMap(SHAPERSTUDY.ShaperIcons[aType])
+            aPixmap.SetPixMap(self.ShaperIcons[aType])
             
         # add a red-reference that means that this is an active reference to SHAPER result
         if not isGroup:
