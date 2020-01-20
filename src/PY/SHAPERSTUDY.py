@@ -191,7 +191,7 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         Returns all names with which Object's was dumped
         into python script to avoid the same names in SMESH script
         """
-        return [""]
+        return []
 
     def GetDumpName( self, theStudyEntry ):
         """
@@ -361,7 +361,7 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         """
         Dump module data to the Python script.
         """
-        return ("".encode(), 1)
+        return ("# SHAPER STUDY DUMP".encode(), 1)
 
 
 
