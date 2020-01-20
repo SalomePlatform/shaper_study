@@ -333,7 +333,6 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
               anObj.SetEntry(anId)
               anIOR = salome.orb.object_to_string(anObj._this())
               __entry2IOR__[anId] = anIOR
-              print("Store for entry "+anId+" IOR=", anIOR)
             aSubNum = 1
         return 1
         
@@ -351,11 +350,9 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
     def LocalPersistentIDToIOR(self, sobject, persistentID, isMultiFile, isASCII):
         "Converts persistent ID of the object to its IOR."
         global __entry2IOR__
-        print("Requires presistent ID="+persistentID)
         if persistentID in __entry2IOR__:
           aRes = __entry2IOR__[persistentID]
           if len(aRes): # set SO from the study, the sobject param is temporary, don't store it
-            print("Found res="+str(aRes))
             salome.orb.string_to_object(aRes).SetSO(getStudy().FindObjectID(sobject.GetID()))
           return aRes
         return ""

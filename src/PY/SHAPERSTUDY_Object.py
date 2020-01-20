@@ -290,6 +290,7 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object,
               aDeadGroup.SetSO(aDeadGroupSO)
               # 15.01.20 groups and fields names stays the same
               #aDeadGroupSO.SetAttrString("AttributeName", aGroupSO.GetName() + " (" + str(anIndex) + ")")
+              aDeadGroupSO.SetAttrString("AttributeName", aGroupSO.GetName())
               aDeadGroupObj = aDeadGroup._this()
               anIOR = salome.orb.object_to_string(aDeadGroupObj)
               aDeadGroupSO.SetAttrString("AttributeIOR", anIOR)
