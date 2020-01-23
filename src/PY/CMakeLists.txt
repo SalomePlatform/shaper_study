@@ -26,6 +26,7 @@ SET(_bin_SCRIPTS
   SHAPERSTUDY_IOperations.py
   SHAPERSTUDY_Object.py
   SHAPERSTUDY_utils.py
+  shaperBuilder.py
 )
 
 # --- rules ---

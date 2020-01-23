@@ -37,6 +37,7 @@ class SHAPERSTUDY_IShapesOperations(SHAPERSTUDY_ORB__POA.IShapesOperations,
         SHAPERSTUDY_Object.SHAPERSTUDY_GenericObject.__init__(self)
         self.done = False
         self.myop = StudyData_Swig.StudyData_Operation()
+        self.errorcode = ""
         pass
 
     def GetAllSubShapesIDs( self, theShape, theShapeType, isSorted ):
@@ -50,7 +51,7 @@ class SHAPERSTUDY_IShapesOperations(SHAPERSTUDY_ORB__POA.IShapesOperations,
             sorted by coordinates of their gravity centers.
         """
         aList = self.myop.GetAllSubShapesIDs(theShape.getShape(), theShapeType, isSorted)
-        self.done = not aList.empty()
+        self.done = True
         aResult = []
         for i in aList:
           aResult.append(i)
@@ -66,7 +67,7 @@ class SHAPERSTUDY_IShapesOperations(SHAPERSTUDY_ORB__POA.IShapesOperations,
             theShapeType Type of sub-shapes to be retrieved.
         """
         aList = self.myop.GetSharedShapes(theShape1.getShape(), theShape2.getShape(), theShapeType)
-        self.done = not aList.empty()
+        self.done = True
         aResult = []
         for i in aList:
           aResult.append(i)
@@ -77,7 +78,7 @@ class SHAPERSTUDY_IShapesOperations(SHAPERSTUDY_ORB__POA.IShapesOperations,
         Get global index of theSubShape in theMainShape.
         """
         anIndex = self.myop.GetSubShapeIndex(theMainShape.getShape(), theSubShape.getShape())
-        self.done = anIndex != 0
+        self.done = True
         return anIndex
 
     def GetSubShape( self, theMainShape, theID ):
@@ -94,12 +95,109 @@ class SHAPERSTUDY_IShapesOperations(SHAPERSTUDY_ORB__POA.IShapesOperations,
         aShapeObj.SetShapeByPointer(aShape)
         return aShapeObj._this()
 
+    def ExtractSubShapes(self, aShape, aType, isSorted):
+        """
+        Extract shapes (excluding the main shape) of given type.
+
+        Parameters:
+            aShape The shape.
+            aType  The shape type (see geompy.ShapeType)
+            isSorted Boolean flag to switch sorting on/off.
+
+        Returns:
+            List of sub-shapes of type aType, contained in aShape.
+        """
+        shapes = self.myop.ExtractSubShapes( aShape.getShape(), aType, isSorted )
+        resultList = []
+        for s in shapes:
+            aShapeObj = SHAPERSTUDY_Object.SHAPERSTUDY_Object()
+            aShapeObj.SetShapeByPointer( s )
+            resultList.append( aShapeObj._this() )
+        self.done = True
+        return resultList
+
+
+    def NumberOfEdges(self, theShape):
+        """
+        Gives quantity of edges in the given shape.
+
+        Parameters:
+            theShape Shape to count edges of.
+
+        Returns:
+            Quantity of edges.
+        """
+        nb = self.myop.NumberOfEdges( theShape.getShape() )
+        self.done = ( nb >= 0 )
+        return nb
+
+    def NumberOfFaces(self, theShape):
+        """
+        Gives quantity of faces in the given shape.
+
+        Parameters:
+            theShape Shape to count faces of.
+
+        Returns:
+            Quantity of faces.
+        """
+        nb = self.myop.NumberOfFaces( theShape.getShape() )
+        self.done = ( nb >= 0 )
+        return nb
+
+    def MakeAllSubShapes(self, aShape, aType):
+        """
+        Explode a shape on sub-shapes of a given type.
+        If the shape itself matches the type, it is also returned.
+
+        Parameters:
+            aShape Shape to be exploded.
+            aType Type of sub-shapes to be retrieved (see geompy.ShapeType)
+
+        Returns:
+            List of sub-shapes of type theShapeType, contained in theShape.
+        """
+        self.done = True
+        return self.myop.MakeAllSubShapes(aShape.getShape(), aType)
+
+    def MakeSubShapes(self, aShape, anIDs):
+        """
+        Get a set of sub-shapes defined by their unique IDs inside theMainShape
+
+        Parameters:
+            aShape Main shape.
+            anIDs List of unique IDs of sub-shapes inside theMainShape.
+
+        Returns:
+            List of GEOM.GEOM_Object, corresponding to found sub-shapes.
+        """
+        self.done = True
+        return self.myop.MakeSubShapes(aShape.getShape(), anIDs)
+
+    def GetTopologyIndex(self, aMainObj, aSubObj):
+        """
+        Return index of a sub-shape
+        """
+        i = self.myop.GetTopologyIndex(aMainObj.getShape(), aSubObj.getShape())
+        self.done = ( i > 0 )
+        return i
+
+    def GetShapeTypeString(self,aSubObj):
+        """
+        Return a shape type as a string
+        """
+        s = "%s" % aSubObj.GetShapeType()
+        t = s[5:]
+        return t
+        
+
     def GetInPlace( self, theShapeWhere, theShapeWhat ):
         """
         Get sub-shape(s) of \a theShapeWhere, which are
         coincident with \a theShapeWhat or could be a part of it.
         """
-        # not done
+        self.done = False
+        self.errorcode = "Not implemented"
         return SHAPERSTUDY_Object()._this()
         
     def GetInPlaceMap( self, theShapeWhere, theShapeWhat ):
@@ -107,7 +205,8 @@ class SHAPERSTUDY_IShapesOperations(SHAPERSTUDY_ORB__POA.IShapesOperations,
         A sort of GetInPlace functionality, returning for each sub-shape ID of
         \a theShapeWhat a list of corresponding sub-shape IDs of \a theShapeWhere.
         """
-        # not done
+        self.done = False
+        self.errorcode = "Not implemented"
         return [[]]
 
     def IsDone( self ):
@@ -118,8 +217,16 @@ class SHAPERSTUDY_IShapesOperations(SHAPERSTUDY_ORB__POA.IShapesOperations,
 
     pass
 
+    def GetErrorCode( self ):
+        """
+        To know a failure reason
+        """
+        return self.errorcode
+
+    pass
+
 class SHAPERSTUDY_IGroupOperations(SHAPERSTUDY_ORB__POA.IGroupOperations,
-                                   SHAPERSTUDY_Object.SHAPERSTUDY_GenericObject):
+                                   SHAPERSTUDY_IShapesOperations):
     """
     Construct an instance of SHAPERSTUDY IShapesOperations.
     """
@@ -161,27 +268,37 @@ class SHAPERSTUDY_IGroupOperations(SHAPERSTUDY_ORB__POA.IGroupOperations,
     def UnionList( self, theGroup, theSubShapes ):
         """
         Adds to the group all the given shapes. No errors, if some shapes are already included.
-
-        Parameters:
-            theGroup is a GEOM group to which the new sub-shapes are added.
-            theSubShapes is a list of sub-shapes to be added.
         """
-        # Not needed while SHAPER-STUDY has no sub-shapes in the structure, so, 
-        # theSubShapes can not be filled or treated
+        self.done = False
+        indices = theGroup.GetSelection()
+        mainShape = self.GetMainShape( theGroup )
+        if not mainShape:
+            self.errorcode = "No main shape"
+            return
+        groupType = self.GetType( theGroup )
+        from shaperBuilder import EnumToLong
+        for shape in theSubShapes:
+            shapeType = EnumToLong( shape.GetShapeType() )
+            if not groupType == shapeType:
+                self.errorcode = "Group type and shape type mismatch"
+                return
+            i = self.myop.GetSubShapeIndex( mainShape.getShape(), shape.getShape() )
+            if not i in indices:
+                indices.append( i )
+        theGroup.SetSelection( indices )
+        self.done = True
         return
-
-    def IsDone( self ):
-        """
-        To know, if the operation was successfully performed
-        """
-        return self.done
 
     def GetMainShape( self, theGroup ):
         """
         Returns a main shape associated with the group
         """
         aSO = theGroup.GetSO()
+        if not aSO:
+            return None
         aFatherSO = aSO.GetFather()
+        if not aFatherSO:
+            return None
         anObj = aFatherSO.GetObject()
         if isinstance( anObj, SHAPERSTUDY_ORB._objref_SHAPER_Object ):
             return anObj
@@ -203,7 +320,7 @@ class SHAPERSTUDY_IGroupOperations(SHAPERSTUDY_ORB__POA.IGroupOperations,
     pass
 
 class SHAPERSTUDY_IFieldOperations(SHAPERSTUDY_ORB__POA.IFieldOperations,
-                                   SHAPERSTUDY_Object.SHAPERSTUDY_GenericObject):
+                                   SHAPERSTUDY_IShapesOperations):
     """
     Construct an instance of SHAPERSTUDY IFieldOperations.
     """
@@ -257,12 +374,14 @@ class SHAPERSTUDY_IFieldOperations(SHAPERSTUDY_ORB__POA.IFieldOperations,
     pass
 
 
-class SHAPERSTUDY_IMeasureOperations(SHAPERSTUDY_ORB__POA.IMeasureOperations):
+class SHAPERSTUDY_IMeasureOperations(SHAPERSTUDY_ORB__POA.IMeasureOperations,
+                                     SHAPERSTUDY_IShapesOperations):
     """
     Construct an instance of SHAPERSTUDY IMeasureOperations.
     """
     def __init__ ( self, *args):
         SHAPERSTUDY_IShapesOperations.__init__(self)
+        self.myop = StudyData_Swig.StudyData_Operation()
         pass
 
     def GetVertexByIndex( self, theShape, theIndex, theUseOri ):
@@ -274,6 +393,56 @@ class SHAPERSTUDY_IMeasureOperations(SHAPERSTUDY_ORB__POA.IMeasureOperations):
         theIndex Index to find vertex by this index (starting from zero)
         theUseOri To consider edge/wire orientation or not
         """
-        return [ SHAPERSTUDY_Field() ]
+        v = self.myop.GetVertexByIndex( theShape.getShape(), theIndex, theUseOri )
+        self.done = ( v > 0 )
+        if self.done:
+            aShapeObj = SHAPERSTUDY_Object.SHAPERSTUDY_Object()
+            aShapeObj.SetShapeByPointer( v )
+            return aShapeObj._this()
+        return None
+
+    def GetMinDistance(self, theShape1, theShape2):
+        """
+        Get minimal distance between the given shapes.
+
+        Parameters:
+            theShape1,theShape2 Shapes to find minimal distance between.
+
+        Returns:
+            Value of the minimal distance between the given shapes.
+        """
+        d = self.myop.MinDistance(theShape1.getShape(), theShape2.getShape())
+        self.done = ( d >= 0 )
+        return d, 0,0,0, 0,0,0
+
+    def PointCoordinates(self,Point):
+        """
+        Get point coordinates
+
+        Returns:
+            [x, y, z]
+        """
+        d = self.myop.PointCoordinates(Point.getShape())
+        self.done = len( d )
+        if self.done == 3:
+            return d[0],d[1],d[2]
+        return [0,0,0]
+
+    def GetTolerance(self,theShape):
+        """
+        Get min and max tolerances of sub-shapes of theShape
+
+        Parameters:
+            theShape Shape, to get tolerances of.
+
+        Returns:
+            [FaceMin,FaceMax, EdgeMin,EdgeMax, VertMin,VertMax]
+             FaceMin,FaceMax: Min and max tolerances of the faces.
+             EdgeMin,EdgeMax: Min and max tolerances of the edges.
+             VertMin,VertMax: Min and max tolerances of the vertices.
+        """
+        tol = self.myop.GetTolerance(theShape.getShape())
+        self.done = tol > 0;
+        return tol,tol, tol,tol, tol,tol
 
     pass

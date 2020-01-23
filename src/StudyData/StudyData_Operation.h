@@ -48,6 +48,25 @@ public:
 
   /// Get a sub-shape defined by its unique ID within theMainShape.
   long long GetSubShape(const long long theMainShape, long theID);
+
+  // Extract shapes of given type
+  std::list<long long> ExtractSubShapes(const long long theMainShape,
+                                        const int       theShapeType,
+                                        const bool      theIsSorted);
+
+  std::list<double> PointCoordinates(const long long theVertex);
+
+  double MinDistance(const long long theVertex1, const long long theVertex2);
+
+  int NumberOfEdges(const long long theShape);
+  
+  int NumberOfFaces(const long long theShape);
+
+  int GetTopologyIndex(const long long theMainShape, const long long theSubShape);
+
+  double GetTolerance( const long long theShape);
+
+  long long GetVertexByIndex(const long long theEdge, int theIndex, bool theUseOri );
 };
 
 #endif // !StudyData_Operation_H

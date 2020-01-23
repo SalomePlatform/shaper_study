@@ -62,7 +62,7 @@ class SHAPERSTUDY_GenericObject:
             oid=poa.servant_to_id(self)
             poa.deactivate_object(oid)
             if hasattr(self,"SetSO"):
-                self.SetSO(None) # release a GenericObject
+                self.SetSO(None) # release a GenericObject SO
             #print("UnRegister() --------- OK")
         return
 
@@ -85,7 +85,7 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object,
         SHAPERSTUDY_GenericObject.__init__(self)
         self.SO = None
         self.data = None
-        self.entry = None
+        self.entry = ""
         self.type = 1 # by default it is a shape (Import feature in GEOMImpl_Types.hxx)
         pass
 
@@ -197,7 +197,9 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object,
         """
         Get a Study entry where this object was published.
         """
-        return self.SO.GetID()
+        if self.SO:
+            return self.SO.GetID()
+        return ""
 
     def IsShape( self ):
         """
@@ -223,11 +225,11 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object,
         """
         Sets SObject of this object (when it is published)
         """
+        if theSO:
+            theSO.Register() # I hold a GenericObject!
         if self.SO:
             self.SO.UnRegister()
         self.SO = theSO
-        if self.SO:
-            self.SO.Register() # I hold a GenericObject!
 
     def GetSO( self ):
         """
@@ -318,7 +320,7 @@ class SHAPERSTUDY_Group(SHAPERSTUDY_ORB__POA.SHAPER_Group, SHAPERSTUDY_Object):
         self.selection = []
         self.SO = None
         self.data = None
-        self.entry = None
+        self.entry = ""
         self.type = 37 # a group type
         pass
 
