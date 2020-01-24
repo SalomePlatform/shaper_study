@@ -24,6 +24,7 @@ import SHAPERSTUDY_ORB__POA
 import SHAPERSTUDY_ORB
 import SHAPERSTUDY_Object
 import GEOM
+import salome
 from SHAPERSTUDY_utils import getStudy
 
 import StudyData_Swig
@@ -173,6 +174,36 @@ class SHAPERSTUDY_IShapesOperations(SHAPERSTUDY_ORB__POA.IShapesOperations,
         """
         self.done = True
         return self.myop.MakeSubShapes(aShape.getShape(), anIDs)
+
+    def GetExistingSubObjects(self, theShape, theGroupsOnly = False):
+        """
+        Get all sub-shapes and groups of theShape,
+        that were created already by any other methods.
+
+        Parameters:
+            theShape Any shape.
+            theGroupsOnly If this parameter is TRUE, only groups will be
+                             returned, else all found sub-shapes and groups.
+
+        Returns:
+            List of existing sub-objects of theShape.
+        """
+        ListObj = []
+        self.done = False
+        SObj = salome.ObjectToSObject( theShape )
+        if not SObj: return ListObj
+        soIter = salome.myStudy.NewChildIterator( SObj )
+        while soIter.More():
+            soChild = soIter.Value()
+            soIter.Next()
+            obj = soChild.GetObject()
+            if theGroupsOnly:
+                if isinstance( obj, SHAPERSTUDY_ORB._objref_SHAPER_Group):
+                    ListObj.append( obj )
+            elif isinstance( obj, SHAPERSTUDY_ORB._objref_SHAPER_Object ):
+                ListObj.append( obj )
+        self.done = True
+        return ListObj
 
     def GetTopologyIndex(self, aMainObj, aSubObj):
         """

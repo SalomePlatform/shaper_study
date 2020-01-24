@@ -54,6 +54,7 @@ assert len(ee) == 4
 assert ee[0].GetShapeType() == GEOM.EDGE
 
 eGroup = shaper.CreateGroup( face, shaper.ShapeType["EDGE"])
+eGroup.SetEntry("eGroup") # enable adding to study
 shaper.addToStudyInFather( face, eGroup, "eGroup" )
 shaper.UnionList( eGroup, ee )
 
