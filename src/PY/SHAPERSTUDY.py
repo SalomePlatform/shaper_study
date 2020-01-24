@@ -96,6 +96,8 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         if theFather is not NULL the object is placed under theFather's SObject.
         Returns a SObject where theObject is placed
         """
+        if not theObject.GetEntry():
+            return None # object not existing in shaper
         aStudy = getStudy()
         aBuilder = aStudy.NewBuilder()
         isGroup = theObject.GetType() == 37 or theObject.GetType() == 52
