@@ -33,7 +33,7 @@ import GEOM
 import SMESH
 
 __entry2IOR__ = {}
-
+__entry2DumpName__ = {}
 
 class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
                   SALOME_ComponentPy.SALOME_ComponentPy_i,
@@ -187,22 +187,6 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
             IOR = getORB().object_to_string( theObject )
             pass
         return IOR
-
-    def GetAllDumpNames( self ):
-        """
-        Returns all names with which Object's was dumped
-        into python script to avoid the same names in SMESH script
-        """
-        return []
-
-    def GetDumpName( self, theStudyEntry ):
-        """
-        Returns a name with which a GEOM_Object was dumped into python script
-
-        Parameters:
-            theStudyEntry is an entry of the Object in the study
-        """
-        return "test"
 
     def Save( self, component, URL, isMultiFile ):
         """
@@ -363,8 +347,62 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         """
         Dump module data to the Python script.
         """
-        return ("# SHAPER STUDY DUMP".encode(), 1)
+        global __entry2DumpName__
+        __entry2DumpName__.clear()
+        # collect all shape-objects in the SHAPERSTUDY tree
+        aShapeObjects = []
+        aStudy = getStudy()
+        aRoots = aStudy.NewChildIterator(findOrCreateComponent())
+        while aRoots.More():
+          aSO = aRoots.Value()
+          anIOR = aSO.GetIOR()
+          if len(anIOR):
+            anObj = salome.orb.string_to_object(anIOR)
+            if anObj and type(anObj) == SHAPERSTUDY_ORB._objref_SHAPER_Object:
+              aShapeObjects.append(anObj)
+          aRoots.Next()
+        script = []
+        if len(aShapeObjects):
+          script.append("if 'model' in globals():")
+          script.append("\tmodel.publishToShaperStudy()")
+          script.append("import SHAPERSTUDY")
+          for aShapeObj in aShapeObjects:
+            aVarName = anObj.GetName()
+            aPrefix = 1
+            while aVarName in __entry2DumpName__:
+              aVarName = anObj.GetName() + "_" + str(aPrefix)
+              aPrefix = aPrefix + 1
+            __entry2DumpName__[aSO.GetID()] = aVarName
+            script.append(aVarName + " = SHAPERSTUDY.shape(\"" + anObj.GetEntry() +"\")")
+          pass
+        
+        script.append("") # to have an end-line in the end
+        result_str = "\n".join(script)
+        encoded_str = result_str.encode() + b'\0' # to avoid garbage symbols in the end
+        return (encoded_str, 1)
 
+    def GetAllDumpNames( self ):
+        """
+        Returns all names with which Object's was dumped
+        into python script to avoid the same names in SMESH script
+        """
+        global __entry2DumpName__
+        aResultList = []
+        for anEntry in __entry2DumpName__:
+          aResultList.append(__entry2DumpName__[anEntry])
+        return aResultList
+
+    def GetDumpName( self, theStudyEntry ):
+        """
+        Returns a name with which a GEOM_Object was dumped into python script
+
+        Parameters:
+            theStudyEntry is an entry of the Object in the study
+        """
+        global __entry2DumpName__
+        if theStudyEntry in __entry2DumpName__:
+          return __entry2DumpName__[theStudyEntry]
+        return ""
 
     def IsFather(theFather, theChild):
         """
@@ -453,4 +491,18 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
 
         # Replace shape object in the parent mesh
         aMeshObject.ReplaceShape(aDeadShape)
-       
+
+def shape(theEntry):
+  """
+  Searches a shape object by the SHAPER entry. Used in the python dump script
+  """
+  aStudy = getStudy()
+  aRoots = aStudy.NewChildIterator(findOrCreateComponent())
+  while aRoots.More():
+    aSO = aRoots.Value()
+    anIOR = aSO.GetIOR()
+    if len(anIOR):
+      anObj = salome.orb.string_to_object(anIOR)
+      if anObj and type(anObj) == SHAPERSTUDY_ORB._objref_SHAPER_Object and anObj.GetEntry() == theEntry:
+        return anObj
+  return None # not found
