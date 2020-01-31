@@ -373,7 +373,29 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
               aVarName = anObj.GetName() + "_" + str(aPrefix)
               aPrefix = aPrefix + 1
             __entry2DumpName__[aSO.GetID()] = aVarName
-            script.append(aVarName + " = SHAPERSTUDY.shape(\"" + anObj.GetEntry() +"\")")
+            # check this shape also has sub-groups and fields
+            aGroupVarNames = []
+            aSOIter = aStudy.NewChildIterator(anObj.GetSO())
+            while aSOIter.More():
+              aGroupSO = aSOIter.Value()
+              anIOR = aGroupSO.GetIOR()
+              if len(anIOR):
+                aGroup = salome.orb.string_to_object(anIOR)
+                if isinstance(aGroup, SHAPERSTUDY_ORB._objref_SHAPER_Group) or \
+                   isinstance(aGroup, SHAPERSTUDY_ORB._objref_SHAPER_Field):
+                  aGroupVarName = aGroup.GetName()
+                  aPrefix = 1
+                  while aGroupVarName in __entry2DumpName__:
+                    aGroupVarName = aGroup.GetName() + "_" + str(aPrefix)
+                    aPrefix = aPrefix + 1
+                  __entry2DumpName__[aGroupSO.GetID()] = aGroupVarName
+                  aGroupVarNames.append(aGroupVarName)
+              aSOIter.Next()
+            aShapeStr = aVarName
+            for aGName in aGroupVarNames:
+              aShapeStr = aShapeStr + ", " + aGName
+            aShapeStr = aShapeStr + " = SHAPERSTUDY.shape(\"" + anObj.GetEntry() +"\")"
+            script.append(aShapeStr)
           pass
         
         script.append("") # to have an end-line in the end
@@ -504,5 +526,17 @@ def shape(theEntry):
     if len(anIOR):
       anObj = salome.orb.string_to_object(anIOR)
       if anObj and type(anObj) == SHAPERSTUDY_ORB._objref_SHAPER_Object and anObj.GetEntry() == theEntry:
-        return anObj
+        aRes = (anObj,)
+        # add groups and fields to the result
+        aSOIter = aStudy.NewChildIterator(aSO)
+        while aSOIter.More():
+          aGroupSO = aSOIter.Value()
+          anIOR = aGroupSO.GetIOR()
+          if len(anIOR):
+            aGroup = salome.orb.string_to_object(anIOR)
+            if isinstance(aGroup, SHAPERSTUDY_ORB._objref_SHAPER_Group) or \
+               isinstance(aGroup, SHAPERSTUDY_ORB._objref_SHAPER_Field):
+              aRes = aRes + (aGroup,)
+          aSOIter.Next()
+        return aRes
   return None # not found
