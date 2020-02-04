@@ -162,7 +162,7 @@ def findOrCreateComponent():
     if father is None:
         father = builder.NewComponent( moduleName() )
         attr = builder.FindOrCreateAttribute( father, "AttributeName" )
-        attr.SetValue( "ShaperStudy" )
+        attr.SetValue( "ShaperResults" )
         attr = builder.FindOrCreateAttribute( father, "AttributePixMap" )
         attr.SetPixMap( modulePixmap() )
         #attr = builder.FindOrCreateAttribute( father, "AttributeLocalID" )
