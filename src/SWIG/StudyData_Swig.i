@@ -5,6 +5,7 @@
 %{
 #include "StudyData_Object.h"
 #include "StudyData_Operation.h"
+#include "StudyData_XAO.h"
 
 #include <Standard_Failure.hxx>
 #include <Standard_ErrorHandler.hxx>
@@ -45,6 +46,7 @@ static PyObject* setOCCException(Standard_Failure& ex)
 
 %include "StudyData_Object.h"
 %include "StudyData_Operation.h"
+%include "StudyData_XAO.h"
 
 %template(LongList) std::list<long>;
 %template(PtrsList) std::list<long long>;

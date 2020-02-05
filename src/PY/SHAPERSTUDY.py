@@ -32,6 +32,8 @@ import SHAPERSTUDY_IOperations
 import GEOM
 import SMESH
 
+import StudyData_Swig
+
 __entry2IOR__ = {}
 __entry2DumpName__ = {}
 
@@ -342,6 +344,23 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
             salome.orb.string_to_object(aRes).SetSO(getStudy().FindObjectID(sobject.GetID()))
           return aRes
         return ""
+    
+    def UniqueDumpName( self, theBaseName, theID ):
+        """
+        Returns a unique name from the theBaseName. Keeps theBaseName if it was not used yet.
+        Stores the newly generated name into the global map __entry2DumpName__.
+        """
+        global __entry2DumpName__
+        aPrefix = 1
+        # to avoid spaces and parenthesis in the variable name
+        aBaseName = theBaseName.replace(" ", "_").replace("(", "").replace(")", "")
+        aName = aBaseName
+        while aName in __entry2DumpName__:
+          aName = aBaseName + "_" + str(aPrefix)
+          aPrefix = aPrefix + 1
+        __entry2DumpName__[theID] = aName
+        return aName
+
 
     def DumpPython( self, isPublished, isMultiFile ):
         """
@@ -349,6 +368,7 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         """
         global __entry2DumpName__
         __entry2DumpName__.clear()
+        anArchiveNum = 1
         # collect all shape-objects in the SHAPERSTUDY tree
         aShapeObjects = []
         aStudy = getStudy()
@@ -367,12 +387,6 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
           script.append("\tmodel.publishToShaperStudy()")
           script.append("import SHAPERSTUDY")
           for aShapeObj in aShapeObjects:
-            aVarName = anObj.GetName()
-            aPrefix = 1
-            while aVarName in __entry2DumpName__:
-              aVarName = anObj.GetName() + "_" + str(aPrefix)
-              aPrefix = aPrefix + 1
-            __entry2DumpName__[aSO.GetID()] = aVarName
             # check this shape also has sub-groups and fields
             aGroupVarNames = []
             aSOIter = aStudy.NewChildIterator(anObj.GetSO())
@@ -383,19 +397,46 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
                 aGroup = salome.orb.string_to_object(anIOR)
                 if isinstance(aGroup, SHAPERSTUDY_ORB._objref_SHAPER_Group) or \
                    isinstance(aGroup, SHAPERSTUDY_ORB._objref_SHAPER_Field):
-                  aGroupVarName = aGroup.GetName()
-                  aPrefix = 1
-                  while aGroupVarName in __entry2DumpName__:
-                    aGroupVarName = aGroup.GetName() + "_" + str(aPrefix)
-                    aPrefix = aPrefix + 1
-                  __entry2DumpName__[aGroupSO.GetID()] = aGroupVarName
+                  aGroupVarName = self.UniqueDumpName(aGroup.GetName(), aGroupSO.GetID())
                   aGroupVarNames.append(aGroupVarName)
               aSOIter.Next()
-            aShapeStr = aVarName
+            aShapeVar = self.UniqueDumpName(anObj.GetName(), anObj.GetSO().GetID())
+            aShapeStr = aShapeVar + ", "
             for aGName in aGroupVarNames:
-              aShapeStr = aShapeStr + ", " + aGName
-            aShapeStr = aShapeStr + " = SHAPERSTUDY.shape(\"" + anObj.GetEntry() +"\")"
+              aShapeStr = aShapeStr + aGName + ", "
+            aShapeStr = aShapeStr + "= SHAPERSTUDY.shape(\"" + anObj.GetEntry() +"\")"
             script.append(aShapeStr)
+            # dump also dead-shapes with groups and fields in the XAO format
+            aRes, aHistSO = aShapeObj.GetSO().FindSubObject(2) # the History folder
+            if aRes:
+              aDeads = aStudy.NewChildIterator(aHistSO)
+              while aDeads.More():
+                aDSO = aDeads.Value()
+                aDIOR = aDSO.GetIOR()
+                if len(aDIOR):
+                  aDeadShape = salome.orb.string_to_object(aDIOR)
+                  if aDeadShape and type(aDeadShape) == SHAPERSTUDY_ORB._objref_SHAPER_Object:
+                    aDeadString = ""
+                    aXAO = StudyData_Swig.StudyData_XAO()
+                    aXAO.SetShape(aDeadShape.getShape())
+                    anArchiveName = "archive_" + str(anArchiveNum) + ".xao"
+                    anArchiveNum = anArchiveNum + 1
+                    aDeadVarName = self.UniqueDumpName(aDeadShape.GetName(), aDSO.GetID())
+                    aDeadString = aDeadString + aDeadVarName + ", "
+                    aDGroupIter = aStudy.NewChildIterator(aDSO)
+                    while aDGroupIter.More():
+                      aDeadGroup = aDGroupIter.Value().GetObject()
+                      if isinstance(aDeadGroup, SHAPERSTUDY_ORB._objref_SHAPER_Group):
+                        aDGroupVarName = self.UniqueDumpName(aDeadGroup.GetName(), aDGroupIter.Value().GetID())
+                        aDeadString = aDeadString + aDGroupVarName + ", "
+                        aGroupID = aXAO.AddGroup(aDeadGroup.GetSelectionType(), aDGroupVarName)
+                        for aSel in aDeadGroup.GetSelection():
+                          aXAO.AddGroupSelection(aGroupID, aSel)
+                      aDGroupIter.Next()
+                    aXAO.Export(anArchiveName)
+                    aDeadString = aDeadString + " = SHAPERSTUDY.archive(" + aShapeVar + ", \"" + anArchiveName + "\")"
+                    script.append(aDeadString)
+                aDeads.Next()
           pass
         
         script.append("") # to have an end-line in the end
@@ -539,4 +580,48 @@ def shape(theEntry):
               aRes = aRes + (aGroup,)
           aSOIter.Next()
         return aRes
+  return None # not found
+
+def archive(theShape, theXAOFile):
+  """
+  Creates a dead shapes under the theShape and restores these dead objects state basing on theXAOFile
+  """
+  theShape.MakeDead()
+  aStudy = getStudy()
+  # searching for the last dead
+  aDeads = aStudy.NewChildIterator(theShape.GetSO().FindSubObject(2)[1])
+  aLastDeadSO = aDeads.Value()
+  while aDeads.More():
+    aLastDeadSO = aDeads.Value()
+    aDeads.Next()
+
+  aDShape = aLastDeadSO.GetObject()
+  if aDShape:
+    aXAO = StudyData_Swig.StudyData_XAO()
+    anError = aXAO.Import(theXAOFile)
+    if (len(anError)):
+      print("Error of XAO file import: " + anError)
+      return None
+    aDShape.SetShapeByPointer(aXAO.GetShape())
+    aRes = (aDShape,)
+    # add groups and fields to the result
+    aGroupIndex = 0
+    aSOIter = aStudy.NewChildIterator(aLastDeadSO)
+    while aSOIter.More():
+      aGroupSO = aSOIter.Value()
+      anIOR = aGroupSO.GetIOR()
+      if len(anIOR):
+        aGroup = salome.orb.string_to_object(anIOR)
+        if isinstance(aGroup, SHAPERSTUDY_ORB._objref_SHAPER_Group):
+          aRes = aRes + (aGroup,)
+          aGroup.SetSelectionType(aXAO.GetGroupDimension(aGroupIndex))
+          aSelection = []
+          for aSel in aXAO.GetGroupSelection(aGroupIndex):
+            aSelection.append(aSel)
+          aGroup.SetSelection(aSelection)
+          aGroupIndex = aGroupIndex + 1
+        elif isinstance(aGroup, SHAPERSTUDY_ORB._objref_SHAPER_Field):
+          aRes = aRes + (aGroup,)
+      aSOIter.Next()
+    return aRes
   return None # not found

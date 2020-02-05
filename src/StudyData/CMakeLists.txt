@@ -37,10 +37,7 @@ ADD_DEFINITIONS(
 SET(_link_LIBRARIES
   SalomeIDLGEOM
   ${OpenCASCADE_ModelingAlgorithms_LIBRARIES}
-  # ${OpenCASCADE_ModelingData_LIBRARIES}
-  # ${OpenCASCADE_ApplicationFramework_LIBRARIES}
-  # ${GEOM_NMTTools}
-  # ${GEOM_GEOMUtils}
+  ${LIB_XAOShaper}
 )
 
 # --- headers ---
@@ -50,6 +47,7 @@ SET(STUDYDATA_HEADERS
     StudyData.h
     StudyData_Object.h
     StudyData_Operation.h
+    StudyData_XAO.h
 )
 
 # --- sources ---
@@ -58,6 +56,7 @@ SET(STUDYDATA_HEADERS
 SET(STUDYDATA_SOURCES
     StudyData_Object.cpp
     StudyData_Operation.cpp
+    StudyData_XAO.cpp
 )
 
 # --- rules ---
