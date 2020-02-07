@@ -641,14 +641,26 @@ def archive(theShape, theXAOFile):
         elif isinstance(aGroup, SHAPERSTUDY_ORB._objref_SHAPER_Field):
           aField = aGroup
           aRes += (aField,)
-          aField.SetValuesType(aXAO.GetValuesType(aFieldIndex))
+          aValType = aXAO.GetValuesType(aFieldIndex)
+          aField.SetValuesType(aValType)
           aField.SetSelectionType(aXAO.GetSelectionType(aFieldIndex))
-          aField.SetComponents(aXAO.GetComponents(aFieldIndex))
+          aCompNames = []
+          for aCompName in aXAO.GetComponents(aFieldIndex):
+            aCompNames.append(aCompName)
+          aField.SetComponents(aCompNames)
           aField.ClearFieldSteps()
-          for aStepIndex in range(aXAO.GetStepsNum(aFieldIndex)):
-            aField.AddFieldStep(aXAO.GetStamp(aFieldIndex, aStepIndex), \
-                                aXAO.GetStepIndex(aFieldIndex, aStepIndex), \
-                                aXAO.GetValues(aFieldIndex, aStepIndex))
+          aXAO.BeginSteps(aFieldIndex)
+          while aXAO.More(aFieldIndex):
+            aValsList = []
+            for aVal in aXAO.GetValues():
+              if aValType == 0: # boolean
+                aValsList.append(int(aVal))
+              elif aValType == 1: # int
+                aValsList.append(int(aVal))
+              elif aValType == 2: # double
+                aValsList.append(float(aVal))
+            aField.AddFieldStep(aXAO.GetStamp(), aXAO.GetStepIndex(), aValsList)
+            aXAO.Next()
           aFieldIndex += 1
       aSOIter.Next()
     return aRes

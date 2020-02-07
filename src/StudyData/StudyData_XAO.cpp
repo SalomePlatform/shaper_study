@@ -138,7 +138,7 @@ long long StudyData_XAO::GetShape()
   return (long long)(myShape);
 }
 
-static int GetSelectionType(const XAO::Dimension theDimension) {
+static int GetSelectionTypeInt(const XAO::Dimension theDimension) {
   switch(theDimension) {
   case XAO::VERTEX: return 7;
   case XAO::EDGE: return 6;
@@ -152,7 +152,7 @@ static int GetSelectionType(const XAO::Dimension theDimension) {
 int StudyData_XAO::GetGroupDimension(const int theGroupID)
 {
   XAO::Group* aXaoGroup = myImport->getGroup(theGroupID);
-  return GetSelectionType(aXaoGroup->getDimension());
+  return GetSelectionTypeInt(aXaoGroup->getDimension());
 }
 
 std::list<long> StudyData_XAO::GetGroupSelection(const int theGroupID)
@@ -174,7 +174,7 @@ int StudyData_XAO::GetValuesType(const int theFieldID)
 int StudyData_XAO::GetSelectionType(const int theFieldID)
 {
   XAO::Field* aField = myImport->getField(theFieldID);
-  return GetSelectionType(aField->getDimension());
+  return GetSelectionTypeInt(aField->getDimension());
 }
 
 std::list<std::string> StudyData_XAO::GetComponents(const int theFieldID)
