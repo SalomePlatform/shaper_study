@@ -420,6 +420,8 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
                     aXAO = StudyData_Swig.StudyData_XAO()
                     aXAO.SetShape(aDeadShape.getShape())
                     anArchiveName = "archive_" + str(anArchiveNum) + ".xao"
+                    if len(aStudy.GetDumpPath()):
+                      anArchiveName = aStudy.GetDumpPath() + "/" + anArchiveName
                     anArchiveNum += 1
                     aDeadVarName = self.UniqueDumpName(aDeadShape.GetName(), aDSO.GetID())
                     aDeadString += aDeadVarName + ", "
