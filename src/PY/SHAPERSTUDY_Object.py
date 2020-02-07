@@ -264,6 +264,10 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object,
         aDeadSO = aBuilder.NewObject(aHistSO)
         anIndex = aDeadSO.Tag()
         aDeadSO.SetAttrString("AttributeName", self.SO.GetName() + " (" + str(anIndex) + ")")
+        aRes, aPixMap = aBuilder.FindAttribute(self.SO, "AttributePixMap")
+        if aRes:
+          aDeadPixMap = aBuilder.FindOrCreateAttribute(aDeadSO, "AttributePixMap")
+          aDeadPixMap.SetPixMap(aPixMap.GetPixMap())
         aDead = SHAPERSTUDY_Object()
         aDeadEntry = "dead" + str(anIndex) + "_" + self.GetEntry()
         aDead.SetEntry(aDeadEntry)
@@ -281,18 +285,32 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object,
           anIOR = aGroupSO.GetIOR()
           if len(anIOR):
             aGroup = salome.orb.string_to_object(anIOR)
-            if isinstance(aGroup, SHAPERSTUDY_ORB._objref_SHAPER_Group):
-              aDeadGroup = SHAPERSTUDY_Group()
+            if isinstance(aGroup, SHAPERSTUDY_ORB._objref_SHAPER_Group) or \
+               isinstance(aGroup, SHAPERSTUDY_ORB._objref_SHAPER_Field):
+              if isinstance(aGroup, SHAPERSTUDY_ORB._objref_SHAPER_Group):
+                aDeadGroup = SHAPERSTUDY_Group()
+              else:
+                aDeadGroup = SHAPERSTUDY_Field()
               aDeadGroupEntry = "dead" + str(anIndex) + "_" + aGroup.GetEntry()
               aDeadGroup.SetEntry(aDeadGroupEntry)
-              aDeadGroup.SetShapeByPointer(aGroup.getShape())
               aDeadGroup.SetSelectionType(aGroup.GetSelectionType())
               aDeadGroup.SetSelection(aGroup.GetSelection())
+              if isinstance(aGroup, SHAPERSTUDY_ORB._objref_SHAPER_Field): # additional field data
+                aDeadGroup.SetValuesType(aGroup.GetValuesType())
+                aDeadGroup.SetSteps(aGroup.GetSteps())
+                aDeadGroup.SetComponents(aGroup.GetComponents())
+                for aStep in aGroup.GetSteps():
+                  aStepObj = aGroup.GetStep(aStep)
+                  aDeadGroup.AddFieldStep(aStepObj.GetStamp(), aStep, aStepObj.GetValues())
               aDeadGroupSO = aBuilder.NewObject(aDeadSO)
               aDeadGroup.SetSO(aDeadGroupSO)
               # 15.01.20 groups and fields names stays the same
               #aDeadGroupSO.SetAttrString("AttributeName", aGroupSO.GetName() + " (" + str(anIndex) + ")")
               aDeadGroupSO.SetAttrString("AttributeName", aGroupSO.GetName())
+              aRes, aPixMap = aBuilder.FindAttribute(aGroupSO, "AttributePixMap")
+              if aRes:
+                aDeadPixMap = aBuilder.FindOrCreateAttribute(aDeadGroupSO, "AttributePixMap")
+                aDeadPixMap.SetPixMap(aPixMap.GetPixMap())
               aDeadGroupObj = aDeadGroup._this()
               anIOR = salome.orb.object_to_string(aDeadGroupObj)
               aDeadGroupSO.SetAttrString("AttributeIOR", anIOR)
@@ -406,6 +424,13 @@ class SHAPERSTUDY_Field(SHAPERSTUDY_ORB__POA.SHAPER_Field, SHAPERSTUDY_Group):
       Sets the type of values in the field
       """
       self.valtype = theType
+
+    def GetValuesType( self ):
+      """
+      Returns the type of values in the field
+      """
+      return self.valtype
+
 
     def GetDataType( self ):
       """

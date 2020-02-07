@@ -121,6 +121,10 @@ interface SHAPER_Field             : GEOM::GEOM_Field
   *  \brief Sets the type of values in the field
   */
   void SetValuesType(in short theType);
+  /*!
+  *  \brief Returns the type of values in the field
+  */
+  short GetValuesType();
 
   /*!
   *  \brief Sets the list of time step IDs in the field

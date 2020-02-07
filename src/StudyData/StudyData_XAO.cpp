@@ -29,7 +29,7 @@
 #include <XAO_BrepGeometry.hxx>
 
 
-StudyData_XAO::StudyData_XAO() : myExport(NULL), myImport(NULL)
+StudyData_XAO::StudyData_XAO() : myExport(NULL), myImport(NULL), myCurrentElementID(0)
 {}
 
 void StudyData_XAO::SetShape(const long long theShapePtr)
@@ -42,19 +42,20 @@ void StudyData_XAO::SetShape(const long long theShapePtr)
   aGeometry->setTopoDS_Shape(*myShape);
 }
 
+static XAO::Dimension GetDimension(const int theSelType) {
+  switch(theSelType) {
+  case 7: return XAO::VERTEX;
+  case 6: return XAO::EDGE;
+  case 4: return XAO::FACE;
+  case 2: return XAO::SOLID;
+  default: return XAO::WHOLE;
+  };
+  return XAO::WHOLE;
+}
+
 int StudyData_XAO::AddGroup(const int theSelType, const std::string theGroupName)
 {
-  if (!myExport)
-    myExport = new XAO::Xao();
-  XAO::Dimension aDimension;
-  switch(theSelType) {
-  case 7: aDimension = XAO::VERTEX; break;
-  case 6: aDimension = XAO::EDGE; break;
-  case 4: aDimension = XAO::FACE; break;
-  case 2: aDimension = XAO::SOLID; break;
-  default: aDimension = XAO::WHOLE;
-  };
-  XAO::Group* aNewGroup = myExport->addGroup(aDimension, theGroupName);
+  XAO::Group* aNewGroup = myExport->addGroup(GetDimension(theSelType), theGroupName);
   int anID = (int)myGroups.size();
   myGroups[anID] = aNewGroup;
   return anID;
@@ -68,11 +69,44 @@ void StudyData_XAO::AddGroupSelection(const int theGroupID, const int theSelecti
 
 void StudyData_XAO::Export(const std::string theFileName)
 {
-  if (!myExport)
-    myExport = new XAO::Xao();
   myExport->setAuthor("ShaperStudy");
 
   XAO::XaoExporter::saveToFile(myExport, theFileName, "");
+}
+
+int StudyData_XAO::AddField(const int theValType, const int theSelType,
+  const int theCompsNum, const std::string theFieldName)
+{
+  XAO::Field* aNewField = myExport->addField(
+    XAO::Type(theValType), GetDimension(theSelType), theCompsNum, theFieldName);
+  int anID = (int)myFields.size();
+  myFields[anID] = aNewField;
+  return anID;
+}
+
+void StudyData_XAO::SetFieldComponent(const int theFieldID, const int theCompIndex,
+  const std::string theCompName)
+{
+  myFields[theFieldID]->setComponentName(theCompIndex, theCompName);
+}
+
+void StudyData_XAO::AddStep(const int theFieldID, const int theStepID, const int theStampID)
+{
+  XAO::Step* aNewStep = myFields[theFieldID]->addNewStep(theStepID);
+  aNewStep->setStamp(theStampID);
+  if (mySteps.find(theFieldID) == mySteps.end())
+    mySteps[theFieldID] = std::map<int, XAO::Step*>();
+  mySteps[theFieldID][theStepID] = aNewStep;
+  myCurrentElementID = 0;
+}
+
+void StudyData_XAO::AddStepValue(
+  const int theFieldID, const int theStepID, std::string theValue)
+{
+  int aColumns = myFields[theFieldID]->countComponents();
+  mySteps[theFieldID][theStepID]->setStringValue(
+    myCurrentElementID / aColumns, myCurrentElementID % aColumns, theValue);
+  myCurrentElementID++;
 }
 
 std::string StudyData_XAO::Import(const std::string theFileName)
@@ -104,10 +138,8 @@ long long StudyData_XAO::GetShape()
   return (long long)(myShape);
 }
 
-int StudyData_XAO::GetGroupDimension(const int theGroupID)
-{
-  XAO::Group* aXaoGroup = myImport->getGroup(theGroupID);
-  switch(aXaoGroup->getDimension()) {
+static int GetSelectionType(const XAO::Dimension theDimension) {
+  switch(theDimension) {
   case XAO::VERTEX: return 7;
   case XAO::EDGE: return 6;
   case XAO::FACE: return 4;
@@ -117,6 +149,12 @@ int StudyData_XAO::GetGroupDimension(const int theGroupID)
   return -1;
 }
 
+int StudyData_XAO::GetGroupDimension(const int theGroupID)
+{
+  XAO::Group* aXaoGroup = myImport->getGroup(theGroupID);
+  return GetSelectionType(aXaoGroup->getDimension());
+}
+
 std::list<long> StudyData_XAO::GetGroupSelection(const int theGroupID)
 {
   XAO::Group* aXaoGroup = myImport->getGroup(theGroupID);
@@ -124,5 +162,65 @@ std::list<long> StudyData_XAO::GetGroupSelection(const int theGroupID)
   for (int anElementIndex = 0; anElementIndex < aXaoGroup->count(); ++anElementIndex) {
     aResult.push_back(aXaoGroup->get(anElementIndex));
   }
+  return aResult;
+}
+
+int StudyData_XAO::GetValuesType(const int theFieldID)
+{
+  XAO::Field* aField = myImport->getField(theFieldID);
+  return (int)(aField->getType());
+}
+
+int StudyData_XAO::GetSelectionType(const int theFieldID)
+{
+  XAO::Field* aField = myImport->getField(theFieldID);
+  return GetSelectionType(aField->getDimension());
+}
+
+std::list<std::string> StudyData_XAO::GetComponents(const int theFieldID)
+{
+  XAO::Field* aField = myImport->getField(theFieldID);
+  std::list<std::string> aResult;
+  int aNum = aField->countComponents();
+  for(int a = 0; a < aNum; a++) {
+    aResult.push_back(aField->getComponentName(a));
+  }
+  return aResult;
+}
+
+void StudyData_XAO::BeginSteps(const int theFieldID)
+{
+  myStepIterator = myImport->getField(theFieldID)->begin();
+}
+
+bool StudyData_XAO::More(const int theFieldID)
+{
+  return myStepIterator != myImport->getField(theFieldID)->end();
+}
+
+void StudyData_XAO::Next()
+{
+  myStepIterator++;
+}
+
+int StudyData_XAO::GetStamp()
+{
+  return (*myStepIterator)->getStamp();
+}
+
+int StudyData_XAO::GetStepIndex()
+{
+  return (*myStepIterator)->getStep();
+}
+
+std::list<std::string> StudyData_XAO::GetValues()
+{
+  std::list<std::string> aResult;
+  int aComps = (*myStepIterator)->countComponents();
+  int aVals = (*myStepIterator)->countValues();
+  for(int a = 0; a < aVals; a++) {
+    aResult.push_back((*myStepIterator)->getStringValue(a / aComps, a % aComps));
+  }
+
   return aResult;
 }
