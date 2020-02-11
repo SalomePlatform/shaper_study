@@ -389,7 +389,7 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
           for aShapeObj in aShapeObjects:
             # check this shape also has sub-groups and fields
             aGroupVarNames = []
-            aSOIter = aStudy.NewChildIterator(anObj.GetSO())
+            aSOIter = aStudy.NewChildIterator(aShapeObj.GetSO())
             while aSOIter.More():
               aGroupSO = aSOIter.Value()
               anIOR = aGroupSO.GetIOR()
@@ -400,11 +400,11 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
                   aGroupVarName = self.UniqueDumpName(aGroup.GetName(), aGroupSO.GetID())
                   aGroupVarNames.append(aGroupVarName)
               aSOIter.Next()
-            aShapeVar = self.UniqueDumpName(anObj.GetName(), anObj.GetSO().GetID())
+            aShapeVar = self.UniqueDumpName(aShapeObj.GetName(), aShapeObj.GetSO().GetID())
             aShapeStr = aShapeVar + ", "
             for aGName in aGroupVarNames:
               aShapeStr += aGName + ", "
-            aShapeStr += "= SHAPERSTUDY.shape(\"" + anObj.GetEntry() +"\")"
+            aShapeStr += "= SHAPERSTUDY.shape(\"" + aShapeObj.GetEntry() +"\")"
             script.append(aShapeStr)
             # dump also dead-shapes with groups and fields in the XAO format
             aRes, aHistSO = aShapeObj.GetSO().FindSubObject(2) # the History folder
@@ -599,6 +599,7 @@ def shape(theEntry):
               aRes = aRes + (aGroup,)
           aSOIter.Next()
         return aRes
+    aRoots.Next()
   return None # not found
 
 def archive(theShape, theXAOFile):
