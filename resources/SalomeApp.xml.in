@@ -8,6 +8,6 @@
   </section>
   <section name="resources">
     <!-- Module resources -->
-    <parameter name="SHAPERSTUDY"         value="%SHAPERSTUDY_ROOT_DIR%/share/salome/resources/SHAPERSTUDY"/>
+    <parameter name="SHAPERSTUDY"         value="%SHAPERSTUDY_ROOT_DIR%/share/salome/resources/shaperstudy"/>
   </section>
 </document>
