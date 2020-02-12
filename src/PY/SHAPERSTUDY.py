@@ -143,6 +143,13 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
 
         return aResultSO
 
+    def StoreVariableName(self, theEntry, theVarName):
+        """
+        Stores the variable names of the SHAPER dump to python
+        """
+        __entry2DumpName__["s" + theEntry] = theVarName
+
+
     def AddSubShape( theMainShape, theIndices ):
         """
         Add a sub-shape defined by indices in theIndices
@@ -361,13 +368,29 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         __entry2DumpName__[theID] = aName
         return aName
 
+    def GetShaperEntry(self, theShapeObj):
+        """
+        Returns string in the python dump that generates the SHAPER entry:
+        it may be just entry string, or call for the SHAPER dump variable.
+        """
+        global __entry2DumpName__
+        anEntry = "s" + theShapeObj.GetEntry()
+        if anEntry in __entry2DumpName__:
+          return "model.featureStringId(" + __entry2DumpName__[anEntry] + ")"
+        return "\"" + theShapeObj.GetEntry() + "\""
 
     def DumpPython( self, isPublished, isMultiFile ):
         """
         Dump module data to the Python script.
         """
         global __entry2DumpName__
-        __entry2DumpName__.clear()
+        # remove all non-SHAPER entries
+        aCopyMap = {}
+        for anEntry in __entry2DumpName__:
+          if anEntry.startswith("s"):
+            aCopyMap[anEntry] = __entry2DumpName__[anEntry]
+        __entry2DumpName__ = aCopyMap
+
         anArchiveNum = 1
         # collect all shape-objects in the SHAPERSTUDY tree
         aShapeObjects = []
@@ -404,7 +427,7 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
             aShapeStr = aShapeVar + ", "
             for aGName in aGroupVarNames:
               aShapeStr += aGName + ", "
-            aShapeStr += "= SHAPERSTUDY.shape(\"" + aShapeObj.GetEntry() +"\")"
+            aShapeStr += "= SHAPERSTUDY.shape(" + self.GetShaperEntry(aShapeObj) +")"
             script.append(aShapeStr)
             # dump also dead-shapes with groups and fields in the XAO format
             aRes, aHistSO = aShapeObj.GetSO().FindSubObject(2) # the History folder

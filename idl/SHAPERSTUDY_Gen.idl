@@ -101,6 +101,11 @@ interface Gen : GEOM::GEOM_Gen
    *  \brief Searches existing or creates a new SHAPERSTUDY_Object to interact with SHAPER
    */
   SHAPER_Object FindOrCreateShape(in string theInternalEntry);
+
+  /*!
+  *  \brief Stores the variable names of the SHAPER dump to python
+  */
+  void StoreVariableName(in string theEntry, in string theVarName);
 };
 
 interface IShapesOperations : GEOM::GEOM_IShapesOperations
