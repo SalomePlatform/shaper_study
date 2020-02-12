@@ -256,9 +256,9 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object,
         """
         aStudy = getStudy()
         aBuilder = aStudy.NewBuilder()
-        aRes, aHistSO = self.SO.FindSubObject(2)
+        aRes, aHistSO = self.SO.FindSubObject(10000)
         if not aRes: # create a "history" folder if it does not exist
-          aHistSO = aBuilder.NewObjectToTag(self.SO, 2)
+          aHistSO = aBuilder.NewObjectToTag(self.SO, 10000)
           aHistSO.SetAttrString("AttributeName", "History")
 
         aDeadSO = aBuilder.NewObject(aHistSO)

@@ -110,14 +110,18 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         else:
           theFatherSO = theFather.GetSO()
         aResultSO = None
-        if isGroup: # add group to the third sub-label or later to keep space for reference and "History"
-          aTag = 3
+        if isGroup:
+          aTag = 2
           anIter = aStudy.NewChildIterator(theFatherSO)
           while anIter.More():
+            if anIter.Value().Tag() == 10000: # skip the history folder
+              continue
             aCurrentTag = anIter.Value().Tag() + 1
             if aTag < aCurrentTag:
               aTag = aCurrentTag
             anIter.Next()
+          if aTag == 10000: # to avoid putting the object to the history folder
+            aTag += 1
           aResultSO = aBuilder.NewObjectToTag(theFatherSO, aTag)
         else:
           aResultSO = aBuilder.NewObject(theFatherSO);
@@ -430,7 +434,7 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
             aShapeStr += "= SHAPERSTUDY.shape(" + self.GetShaperEntry(aShapeObj) +")"
             script.append(aShapeStr)
             # dump also dead-shapes with groups and fields in the XAO format
-            aRes, aHistSO = aShapeObj.GetSO().FindSubObject(2) # the History folder
+            aRes, aHistSO = aShapeObj.GetSO().FindSubObject(10000) # the History folder
             if aRes:
               aDeads = aStudy.NewChildIterator(aHistSO)
               while aDeads.More():
@@ -528,7 +532,7 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
           return
         aRes, aSSO = aSO.ReferencedObject()
         if not aRes:
-          return # only SObjects referenced to the SHAPEr STUDY objects are allowed
+          return # only SObjects referenced to the SHAPER STUDY objects are allowed
         anIOR = aSSO.GetIOR()
         if not anIOR:
           return # must be referenced to the SHAPER STUDY shape
@@ -632,7 +636,7 @@ def archive(theShape, theXAOFile):
   theShape.MakeDead()
   aStudy = getStudy()
   # searching for the last dead
-  aDeads = aStudy.NewChildIterator(theShape.GetSO().FindSubObject(2)[1])
+  aDeads = aStudy.NewChildIterator(theShape.GetSO().FindSubObject(10000)[1])
   aLastDeadSO = aDeads.Value()
   while aDeads.More():
     aLastDeadSO = aDeads.Value()
