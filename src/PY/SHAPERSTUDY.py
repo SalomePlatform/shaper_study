@@ -64,6 +64,9 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         Engines::EngineComponent CORBA interface - SALOME component) and SALOME_DriverPy_i
         (implementation of SALOMEDS::Driver CORBA interface - SALOME module's engine).
         """
+        global __entry2IOR__, __entry2DumpName__
+        __entry2IOR__.clear()
+        __entry2DumpName__.clear()
         SALOME_ComponentPy.SALOME_ComponentPy_i.__init__(self, orb, poa,
                     contID, containerName, instanceName, interfaceName, False)
         SALOME_DriverPy.SALOME_DriverPy_i.__init__(self, interfaceName)
@@ -513,15 +516,6 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
           return __entry2DumpName__[theStudyEntry]
         return ""
 
-    def IsFather(theFather, theChild):
-        """
-        Returns true if theChild SObject is a child of theFather SObject
-        """
-        aChild = theChild.GetFather()
-        while aChild.Depth() > theFather.Depth():
-          aChild = aChild.GetFather()
-        return aChild.GetID() == theFather.GetID()
-
     def BreakLink(self, theEntry):
         """
         Breaks links to not-dead shape, make the shape as dead
@@ -551,52 +545,7 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         aBuilder.Addreference(aSO, aDeadShape.GetSO())
 
         # check also sub-structure of the mesh to find references to sub-objects that become dead
-        aRoot = aSO.GetFather()
-        anIters = [aStudy.NewChildIterator(aRoot)]
-        aSubList = []
-        while len(anIters):
-          aLast = anIters[len(anIters) - 1]
-          if aLast.More():
-            aSub = aLast.Value()
-            aRes, aSubRef = aSub.ReferencedObject()
-            if aRes and SHAPERSTUDY.IsFather(aSSO, aSubRef):
-              aReferenced = aSubRef.GetObject()
-              if aReferenced and not aReferenced.IsDead():
-                aSubList.append(aSub)
-            anIters.append(aStudy.NewChildIterator(aSub))
-            aLast.Next()
-          else:
-            anIters.remove(aLast)
-        if len(aSubList):
-          # associate the number of sub-objects of the referenced objects
-          aMapSubEntryToIndex = {}
-          aSSOIter = aStudy.NewChildIterator(aSSO)
-          anIndex = 1
-          while aSSOIter.More():
-            aSub = aSSOIter.Value()
-            if aSub.GetIOR():
-              aMapSubEntryToIndex[aSub.GetID()] = anIndex
-              anIndex = anIndex + 1
-            aSSOIter.Next()
-          for aSubSO in aSubList:
-            aRes, aSubRef = aSubSO.ReferencedObject()
-            if aRes and aSubRef.GetID() in aMapSubEntryToIndex:
-              anIndex = aMapSubEntryToIndex[aSubRef.GetID()]
-              aDeadIter = aStudy.NewChildIterator(aDeadShape.GetSO())
-              while aDeadIter.More(): # iterate dead subs to find object with the same index
-                aDeadSubSO = aDeadIter.Value()
-                if aDeadSubSO.GetIOR():
-                  anIndex = anIndex - 1
-                  if anIndex == 0:
-                    # for a submesh there is no ReplaceShape, but the shape is not updated
-                    # anyway, so no need to update it here
-                    #aSubMeshSO = aSubSO.GetFather() # Replace shape object in the parent mesh
-                    #aSubMeshObject = aSubMeshSO.GetObject()
-                    #if aSubMeshObject:
-                    #  aSubMeshObject.ReplaceShape(aDeadSubSO.GetObject())
-                    aBuilder.RemoveReference(aSubSO) # reset reference to the dead shape
-                    aBuilder.Addreference(aSubSO, aDeadSubSO)
-                aDeadIter.Next()
+        breakLinkForSubElements(aSO, aDeadShape)
 
         # Replace shape object in the parent mesh
         aMeshObject.ReplaceShape(aDeadShape)
@@ -695,3 +644,63 @@ def archive(theShape, theXAOFile):
       aSOIter.Next()
     return aRes
   return None # not found
+
+def isFather(theFather, theChild):
+    """
+    Returns true if theChild SObject is a child of theFather SObject
+    """
+    aChild = theChild.GetFather()
+    while aChild.Depth() > theFather.Depth():
+      aChild = aChild.GetFather()
+    return aChild.GetID() == theFather.GetID()
+
+def breakLinkForSubElements(theMainShapeSO, theDeadShape):
+  """
+  Checks sub-structure of the SMESH-mesh to find references to sub-objects that become dead.
+  theMainShapeSO is SObject with reference to real SHAPERSTUDY shape, located under the Mesh node.
+  theDeadShape is a newly created dead shape instance
+  """
+  aStudy = getStudy()
+  aBuilder = aStudy.NewBuilder()
+  aRoot = theMainShapeSO.GetFather()
+  anIters = [aStudy.NewChildIterator(aRoot)]
+  aSubList = []
+  anOriginShapeSO = theDeadShape.GetSO().GetFather().GetFather()
+  while len(anIters):
+    aLast = anIters[len(anIters) - 1]
+    if aLast.More():
+      aSub = aLast.Value()
+      aRes, aSubRef = aSub.ReferencedObject()
+      if aRes and isFather(anOriginShapeSO, aSubRef):
+        aReferenced = aSubRef.GetObject()
+        if aReferenced and not aReferenced.IsDead():
+          aSubList.append(aSub)
+      anIters.append(aStudy.NewChildIterator(aSub))
+      aLast.Next()
+    else:
+      anIters.remove(aLast)
+  if len(aSubList):
+    # associate the number of sub-objects of the referenced objects
+    aMapSubEntryToIndex = {}
+    aSSOIter = aStudy.NewChildIterator(anOriginShapeSO)
+    anIndex = 1
+    while aSSOIter.More():
+      aSub = aSSOIter.Value()
+      if aSub.GetIOR():
+        aMapSubEntryToIndex[aSub.GetID()] = anIndex
+        anIndex = anIndex + 1
+      aSSOIter.Next()
+    for aSubSO in aSubList:
+      aRes, aSubRef = aSubSO.ReferencedObject()
+      if aRes and aSubRef.GetID() in aMapSubEntryToIndex:
+        anIndex = aMapSubEntryToIndex[aSubRef.GetID()]
+        aDeadIter = aStudy.NewChildIterator(theDeadShape.GetSO())
+        while aDeadIter.More(): # iterate dead subs to find object with the same index
+          aDeadSubSO = aDeadIter.Value()
+          if aDeadSubSO.GetIOR():
+            anIndex = anIndex - 1
+            if anIndex == 0:
+              aBuilder.RemoveReference(aSubSO) # reset reference to the dead shape
+              aBuilder.Addreference(aSubSO, aDeadSubSO)
+          aDeadIter.Next()
+  pass
