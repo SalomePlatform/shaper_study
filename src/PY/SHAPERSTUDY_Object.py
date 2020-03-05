@@ -193,6 +193,14 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object,
           return self.data.getTick()
         return 0
 
+    def SetTick( self, theValue ):
+        """
+        Sets value of a modification counter of the object
+        """
+        if self.data:
+          return self.data.setTick(theValue)
+        return 0
+
     def GetStudyEntry( self ):
         """
         Get a Study entry where this object was published.

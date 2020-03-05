@@ -265,8 +265,9 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
           elif isinstance(anObj, SHAPERSTUDY_ORB._objref_SHAPER_Object):
             if len(aResult):
               aResult += '|'
-            # store internal entry, current and old shapes in BRep format
-            aResult += anObj.GetEntry() + "|" + anObj.GetShapeStream().decode()
+            # store internal entry + tick, current and old shapes in BRep format
+            aResult += anObj.GetEntry() + " " + str(anObj.GetTick())
+            aResult += "|" + anObj.GetShapeStream().decode()
             aResult += "|" + anObj.GetOldShapeStream().decode()
 
         return aResult.encode()
@@ -335,9 +336,12 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
                 anObj.SetShapeByStream(aSub)
               anObj.SetShapeByStream(aNewShapeStream)
             if anObj:
-              anObj.SetEntry(anId)
+              anEntryAndTick = anId.split(" ")
+              anObj.SetEntry(anEntryAndTick[0])
+              if len(anEntryAndTick) > 1:
+                anObj.SetTick(int(anEntryAndTick[1]))
               anIOR = salome.orb.object_to_string(anObj._this())
-              __entry2IOR__[anId] = anIOR
+              __entry2IOR__[anEntryAndTick[0]] = anIOR
             aSubNum = 1
         return 1
         
@@ -416,8 +420,7 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
           aRoots.Next()
         script = []
         if len(aShapeObjects):
-          script.append("if 'model' in globals():")
-          script.append("\tmodel.publishToShaperStudy()")
+          script.append("model.publishToShaperStudy()")
           script.append("import SHAPERSTUDY")
           for aShapeObj in aShapeObjects:
             # check this shape also has sub-groups and fields
