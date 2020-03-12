@@ -375,6 +375,12 @@ class SHAPERSTUDY_Group(SHAPERSTUDY_ORB__POA.SHAPER_Group, SHAPERSTUDY_Object):
         """
         return self.selection
 
+    def IsMainShape( self ):
+        """
+        Returns True if this object is not a sub-shape of another object.
+        """
+        return False
+
     def GetMainShape( self ):
         """
         Main shape is groups owner
