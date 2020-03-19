@@ -390,7 +390,10 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         global __entry2DumpName__
         anEntry = "s" + theShapeObj.GetEntry()
         if anEntry in __entry2DumpName__:
-          return "model.featureStringId(" + __entry2DumpName__[anEntry] + ")"
+          anArg = ""
+          if anEntry.count(":") == 2: # not first result of the feature, set argument as a number
+            anArg = ", " + anEntry[anEntry.rfind(":") + 1:]
+          return "model.featureStringId(" + __entry2DumpName__[anEntry] + anArg + ")"
         return "\"" + theShapeObj.GetEntry() + "\""
 
     def DumpPython( self, isPublished, isMultiFile ):
