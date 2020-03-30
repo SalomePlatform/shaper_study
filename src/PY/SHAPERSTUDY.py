@@ -88,10 +88,11 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         while aSOIter.More():
           aSO = aSOIter.Value()
           anIOR = aSO.GetIOR()
-          anObj = salome.orb.string_to_object(anIOR)
-          if isinstance(anObj, SHAPERSTUDY_ORB._objref_SHAPER_Object):
-            if anObj.GetEntry() == theInternalEntry:
-              return anObj
+          if len(anIOR):
+            anObj = salome.orb.string_to_object(anIOR)
+            if anObj and isinstance(anObj, SHAPERSTUDY_ORB._objref_SHAPER_Object):
+              if anObj.GetEntry() == theInternalEntry:
+                return anObj
           aSOIter.Next()
 
         aShapeObj = SHAPERSTUDY_Object.SHAPERSTUDY_Object()
