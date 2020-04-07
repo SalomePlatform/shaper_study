@@ -366,7 +366,8 @@ class SHAPERSTUDY_Group(SHAPERSTUDY_ORB__POA.SHAPER_Group, SHAPERSTUDY_Object):
         """
         Sets what is returned in the GEOM_IGroupOperations::GetObjects
         """
-        self.data = None # nullify the cashed shape when selection is changed
+        #self.data = None # nullify the cashed shape when selection is changed
+        print("Set selection for the group " + str(self.entry) + " = " + str(theSelection))
         self.selection = theSelection
 
     def GetSelection(self):

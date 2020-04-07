@@ -23,6 +23,7 @@
 #include "StudyData_Object.h"
 
 #include <TopExp.hxx>
+#include <TopoDS_Iterator.hxx>
 #include <BRep_Builder.hxx>
 #include <BRepTools.hxx>
 #include <BRepBuilderAPI_Copy.hxx>
@@ -118,6 +119,28 @@ long long StudyData_Object::groupShape(long long theMainShape, const std::list<l
       aBuilder.Add(aResult, aSel);
     }
     myShape = aResult;
+  } else { // check myShape equals to the new result
+    TopoDS_Shape* aShape = (TopoDS_Shape*)theMainShape;
+    TopTools_IndexedMapOfShape anIndices;
+    TopExp::MapShapes(*aShape, anIndices);
+    TopoDS_Iterator aMyIter(myShape);
+    std::list<long>::const_iterator aSelIter = theSelection.cbegin();
+    for(; aSelIter != theSelection.cend() && aMyIter.More(); aSelIter++, aMyIter.Next()) {
+      TopoDS_Shape aSel = anIndices.FindKey(*aSelIter);
+      if (!aSel.IsSame(aMyIter.Value()))
+        break;
+    }
+    if (aMyIter.More() || aSelIter != theSelection.cend()) { // recompute myShape
+      TopoDS_Compound aResult;
+      BRep_Builder aBuilder;
+      aBuilder.MakeCompound(aResult);
+      std::list<long>::const_iterator aSelIter = theSelection.cbegin();
+      for(; aSelIter != theSelection.cend(); aSelIter++) {
+        TopoDS_Shape aSel = anIndices.FindKey(*aSelIter);
+        aBuilder.Add(aResult, aSel);
+      }
+      myShape = aResult;
+    }
   }
   return (long long)(&myShape);
 }
