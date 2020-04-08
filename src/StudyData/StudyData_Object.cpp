@@ -69,6 +69,38 @@ void StudyData_Object::updateShape(const std::string theFile)
   if (myStream == theFile) { // absolutely identical shapes, no need to store
     return;
   }
+  size_t aDelta = myStream.size() - theFile.size();
+  aDelta = aDelta < 0 ? -aDelta : aDelta;
+  size_t aSum = myStream.size() + theFile.size();
+  if (double(aDelta) / aSum < 0.05) { // size-difference is less than 10%
+    // check numbers have the minimal differnce
+    std::istringstream aMyStr(myStream);
+    std::istringstream aFileStr(theFile);
+    double aMyNum, aFileNum;
+    std::string aBuf1, aBuf2;
+    while(aMyStr && aFileStr) {
+      if (aMyStr>>aMyNum) {
+        if (aFileStr>>aFileNum) {
+          if (std::abs(aMyNum - aFileNum) > 1.e-9)
+            break; // different numbers
+        } else {
+          break; // number and not number
+        }
+      } else if (aFileStr>>aFileNum) {
+        break; // number and not number
+      } else { // read two non-numbers
+        aMyStr.clear();
+        aMyStr>>aBuf1;
+        aFileStr.clear();
+        aFileStr>>aBuf2;
+        if (aBuf1 != aBuf2)
+          break; // strings are different
+      }
+    }
+    if (!aMyStr || !aFileStr) // both get to the end with equal content
+      return;
+  }
+
   // update the current shape
   std::istringstream streamBrep(theFile.c_str());
   BRep_Builder aBuilder;
