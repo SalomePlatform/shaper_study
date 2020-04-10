@@ -47,16 +47,16 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
 
     ShapeType = {"AUTO":-1, "COMPOUND":0, "COMPSOLID":1, "SOLID":2, "SHELL":3, "FACE":4, "WIRE":5, "EDGE":6, "VERTEX":7, "SHAPE":8, "FLAT":9}
     
-    ShaperIcons = {GEOM.COMPOUND:"SHAPER_ICON_COMPSOLID",
-        GEOM.COMPSOLID:"SHAPER_ICON_COMPSOLID",
-        GEOM.SOLID:"SHAPER_ICON_SOLID",
-        GEOM.SHELL:"SHAPER_ICON_SHELL",
-        GEOM.FACE:"SHAPER_ICON_FACE",
-        GEOM.WIRE:"SHAPER_ICON_WIRE",
-        GEOM.EDGE:"SHAPER_ICON_EDGE",
-        GEOM.VERTEX:"SHAPER_ICON_VERTEX",
-        GEOM.SHAPE:"SHAPER_ICON_SOLID",
-        GEOM.FLAT:"SHAPER_ICON_FACE"
+    ShaperIcons = {GEOM.COMPOUND:"compsolid.png",
+        GEOM.COMPSOLID:"compsolid.png",
+        GEOM.SOLID:"solid.png",
+        GEOM.SHELL:"shell.png",
+        GEOM.FACE:"face.png",
+        GEOM.WIRE:"wire.png",
+        GEOM.EDGE:"edge.png",
+        GEOM.VERTEX:"vertex.png",
+        GEOM.SHAPE:"solid.png",
+        GEOM.FLAT:"face.png"
         }
 
     def __init__ ( self, orb, poa, contID, containerName, instanceName, interfaceName ):

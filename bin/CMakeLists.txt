@@ -18,14 +18,3 @@
 #
 
 SALOME_CONFIGURE_FILE(VERSION.in VERSION INSTALL ${SALOME_INSTALL_BINS})
-#SALOME_CONFIGURE_FILE(runSHAPERSTUDY.in runSHAPERSTUDY INSTALL ${SALOME_INSTALL_BINS} EXEC_PERMS)
-
-# ===============================================================
-# Files to be installed
-# ===============================================================
-
-SET(_bin_scripts
-  
-)
-
-SALOME_INSTALL_SCRIPTS("${_bin_scripts}" ${SALOME_INSTALL_SCRIPT_SCRIPTS})

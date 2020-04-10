@@ -1,9 +1,3 @@
-# - Config file for the @PROJECT_NAME@ package
-# It defines the following variables. 
-# Specific to the pacakge @PROJECT_NAME@ itself:
-#  @PROJECT_NAME_UC@_ROOT_DIR_EXP - the root path of the installation providing this CMake file
-#
-
 ###############################################################
 # Copyright (C) 2007-2019  CEA/DEN, EDF R&D, OPEN CASCADE
 #
@@ -27,20 +21,14 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
+# - Config file for the @PROJECT_NAME@ package
+# It defines the following variables. 
+# Specific to the pacakge @PROJECT_NAME@ itself:
+#  @PROJECT_NAME_UC@_ROOT_DIR_EXP - the root path of the installation providing this CMake file
+#
+
 ### Initialisation performed by CONFIGURE_PACKAGE_CONFIG_FILE:
 @PACKAGE_INIT@
-
-
-# Package root dir:
-SET_AND_CHECK(SHAPERSTUDY_ROOT_DIR_EXP "@PACKAGE_CMAKE_INSTALL_PREFIX@")
-
-# Include directories
-SET_AND_CHECK(SHAPERSTUDY_INCLUDE_DIRS "${SHAPERSTUDY_ROOT_DIR_EXP}/@SALOME_INSTALL_HEADERS@")
-SET(SHAPERSTUDY_INCLUDE_DIRS "${SHAPERSTUDY_INCLUDE_DIRS};@_SalomeSHAPERSTUDY_EXTRA_HEADERS@")
-SET(SHAPERSTUDY_DEFINITIONS "@GUI_DEFINITIONS@")
-
-# Package specific environment variables
-@_SalomeSHAPERSTUDY_EXTRA_ENV_FULL@
 
 # Load the dependencies for the libraries of @PROJECT_NAME@ 
 # (contains definitions for IMPORTED targets). This is only 
@@ -49,14 +37,27 @@ IF(NOT TARGET SalomeIDLSHAPERSTUDY AND NOT @PROJECT_NAME@_BINARY_DIR)
   INCLUDE("${SHAPERSTUDY_ROOT_DIR_EXP}/${SALOME_INSTALL_CMAKE_LOCAL}/SalomeSHAPERSTUDYTargets.cmake")
 ENDIF()   
 
+# Package root dir:
+SET_AND_CHECK(SHAPERSTUDY_ROOT_DIR_EXP "@PACKAGE_CMAKE_INSTALL_PREFIX@")
+
+# Include directories
+SET_AND_CHECK(SHAPERSTUDY_INCLUDE_DIRS "${SHAPERSTUDY_ROOT_DIR_EXP}/@SALOME_INSTALL_HEADERS@")
+SET(SHAPERSTUDY_INCLUDE_DIRS "${SHAPERSTUDY_INCLUDE_DIRS};@_SalomeSHAPERSTUDY_EXTRA_HEADERS@")
+SET(SHAPERSTUDY_DEFINITIONS "@GEOM_DEFINITIONS@")
+
+# Package specific environment variables
+@_SalomeSHAPERSTUDY_EXTRA_ENV_FULL@
+
 #### Now the specificities
 
 # Options exported by the package:
 SET(SALOME_SHAPERSTUDY_BUILD_TESTS @SALOME_BUILD_TESTS@)
-SET(SALOME_SHAPERSTUDY_BUILD_DOC   @SALOME_BUILD_DOC@)
+# TODO: documentation
+# SET(SALOME_SHAPERSTUDY_BUILD_DOC   @SALOME_BUILD_DOC@)
 
 # Level 1 prerequisites:
-SET_AND_CHECK(GUI_ROOT_DIR_EXP "@PACKAGE_GUI_ROOT_DIR@")
+SET_AND_CHECK(GEOM_ROOT_DIR_EXP "@PACKAGE_GEOM_ROOT_DIR@")
+SET_AND_CHECK(SHAPER_ROOT_DIR_EXP "@PACKAGE_SHAPER_ROOT_DIR@")
 
 # For all prerequisites, load the corresponding targets if the package was used
 # in CONFIG mode. This ensures dependent projects link correctly
@@ -90,27 +91,12 @@ IF(NOT _list_len_@PROJECT_NAME@ EQUAL 0)
   ENDFOREACH()
 ENDIF()
 
-# Installation directories
-SET(SALOME_INSTALL_BINS "@SALOME_INSTALL_BINS@")
-SET(SALOME_INSTALL_LIBS "@SALOME_INSTALL_LIBS@")
-SET(SALOME_INSTALL_IDLS "@SALOME_INSTALL_IDLS@")
-SET(SALOME_INSTALL_HEADERS "@SALOME_INSTALL_HEADERS@")
-SET(SALOME_INSTALL_SCRIPT_SCRIPTS "@SALOME_INSTALL_SCRIPT_SCRIPTS@")
-SET(SALOME_INSTALL_SCRIPT_DATA "@SALOME_INSTALL_SCRIPT_DATA@")
-SET(SALOME_INSTALL_SCRIPT_PYTHON "@SALOME_INSTALL_SCRIPT_PYTHON@")
-SET(SALOME_INSTALL_APPLISKEL_SCRIPTS "@SALOME_INSTALL_APPLISKEL_SCRIPTS@")
-SET(SALOME_INSTALL_APPLISKEL_PYTHON "@SALOME_INSTALL_APPLISKEL_PYTHON@") 
-SET(SALOME_INSTALL_CMAKE_LOCAL "@SALOME_INSTALL_CMAKE_LOCAL@")
-SET(SALOME_INSTALL_PYTHON "@SALOME_INSTALL_PYTHON@")
-SET(SALOME_INSTALL_PYTHON_SHARED "@SALOME_INSTALL_PYTHON_SHARED@")
-SET(SALOME_INSTALL_RES "@SALOME_INSTALL_RES@")
-SET(SALOME_INSTALL_DOC "@SALOME_INSTALL_DOC@")
-SET(SALOME_INSTALL_AMCONFIG_LOCAL "@SALOME_INSTALL_AMCONFIG_LOCAL@")
-
-# Include GUI targets if they were not already loaded:
-IF(NOT (TARGET Event)) 
-  INCLUDE("${GUI_ROOT_DIR_EXP}/${SALOME_INSTALL_CMAKE}/SalomeGUITargets.cmake")
-ENDIF()
+# Include GEOM targets if they were not already loaded:
+IF(NOT (TARGET GEOMbasic))
+  INCLUDE("${GEOM_ROOT_DIR_EXP}/${SALOME_INSTALL_CMAKE_LOCAL}/SalomeGEOMTargets.cmake")
+ENDIF(NOT (TARGET GEOMbasic))
+# TODO: Include SHAPER targets, as soon as config file's support is implemented in SHAPER
 
 # Exposed SHAPERSTUDY targets:
 SET(SHAPERSTUDY_SalomeIDLSHAPERSTUDY SalomeIDLSHAPERSTUDY)
+SET(SHAPERSTUDY_StudyData StudyData)

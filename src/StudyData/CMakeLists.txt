@@ -21,10 +21,7 @@
 # --- options ---
 # additional include directories
 INCLUDE_DIRECTORIES(
-  ${KERNEL_INCLUDE_DIRS}
-  ${GEOM_INCLUDE_DIRS}
   ${OpenCASCADE_INCLUDE_DIR}
-  ${SHAPER_INCLUDE_DIRS}
 )
 
 # additional preprocessor / compiler flags

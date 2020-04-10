@@ -17,12 +17,11 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-INCLUDE(UseOmniORB)  # Provided by KERNEL
+INCLUDE(UseOmniORB)
 
 INCLUDE_DIRECTORIES(
   ${OMNIORB_INCLUDE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
-  ${KERNEL_INCLUDE_DIRS}
 )
 
 SET(SalomeIDLSHAPERSTUDY_IDLSOURCES
