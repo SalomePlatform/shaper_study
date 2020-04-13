@@ -34,7 +34,7 @@
 # (contains definitions for IMPORTED targets). This is only 
 # imported if we are not built as a subproject (in this case targets are already there)
 IF(NOT TARGET SalomeIDLSHAPERSTUDY AND NOT @PROJECT_NAME@_BINARY_DIR)
-  INCLUDE("${SHAPERSTUDY_ROOT_DIR_EXP}/${SALOME_INSTALL_CMAKE_LOCAL}/SalomeSHAPERSTUDYTargets.cmake")
+  INCLUDE("@PACKAGE_SALOME_INSTALL_CMAKE_LOCAL@/@PROJECT_NAME@Targets.cmake")
 ENDIF()   
 
 # Package root dir:
