@@ -122,11 +122,12 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
           anIter = aStudy.NewChildIterator(theFatherSO)
           while anIter.More():
             if anIter.Value().Tag() == 10000: # skip the history folder
+              anIter.Next()
               continue
             aCurrentTag = anIter.Value().Tag() + 1
+            anIter.Next()
             if aTag < aCurrentTag:
               aTag = aCurrentTag
-            anIter.Next()
           if aTag == 10000: # to avoid putting the object to the history folder
             aTag += 1
           aResultSO = aBuilder.NewObjectToTag(theFatherSO, aTag)
@@ -241,6 +242,8 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
             aResult += anObj.GetEntry() + "|" + str(anObj.GetSelectionType())
             aSelList = anObj.GetSelection()
             aResult += "|" + str(' '.join(str(anI) for anI in aSelList))
+            aSelListOld = anObj.GetSelectionOld()
+            aResult += ";" + str(' '.join(str(anI) for anI in aSelListOld))
           elif type(anObj) == SHAPERSTUDY_ORB._objref_SHAPER_Field:
             if len(aResult):
               aResult += '|'
@@ -263,6 +266,8 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
                 aResult += " " + str(aVal) # all values of step
             aSelList = anObj.GetSelection()
             aResult += "|" + str(' '.join(str(anI) for anI in aSelList))
+            aSelListOld = anObj.GetSelectionOld()
+            aResult += ";" + str(' '.join(str(anI) for anI in aSelListOld))
           elif isinstance(anObj, SHAPERSTUDY_ORB._objref_SHAPER_Object):
             if len(aResult):
               aResult += '|'
@@ -295,12 +300,18 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
             if anId.startswith('group') or (anId.startswith('dead') and anId.count("group") > 0): # group object
               anObj = SHAPERSTUDY_Object.SHAPERSTUDY_Group()
               if len(aSub):
-                anObj.SetSelection([int(anI) for anI in aSub.split(' ')])
+                aSel = aSub.split(";")
+                if len(aSel) > 1:
+                  anObj.SetSelection([int(anI) for anI in aSel[1].split(' ')]) # old selection
+                anObj.SetSelection([int(anI) for anI in aSel[0].split(' ')])
               anObj.SetSelectionType(int(aNewShapeStream))
             elif anId.startswith('field') or (anId.startswith('dead') and anId.count("field") > 0): # field object
               anObj = SHAPERSTUDY_Object.SHAPERSTUDY_Field()
               if len(aSub):
-                anObj.SetSelection([int(anI) for anI in aSub.split(' ')])
+                aSel = aSub.split(";")
+                if len(aSel) > 1:
+                  anObj.SetSelection([int(anI) for anI in aSel[1].split(' ')]) # old selection
+                anObj.SetSelection([int(anI) for anI in aSel[0].split(' ')])
               aParams = aNewShapeStream.split(" ")
               anObj.SetSelectionType(int(aParams[0]))
               aTypeStr = aParams[1]

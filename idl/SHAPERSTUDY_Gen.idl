@@ -93,6 +93,10 @@ interface SHAPER_Group : SHAPER_Object
   *  \brief Returns the selected sub-shapes indices
   */
   GEOM::ListOfLong GetSelection();
+  /*!
+  *  \brief Returns the old selected sub-shapes indices (to restore on break-link)
+  */
+  GEOM::ListOfLong GetSelectionOld();
 };
 
 interface Gen : GEOM::GEOM_Gen
@@ -167,7 +171,10 @@ interface SHAPER_Field             : GEOM::GEOM_Field
   *  \brief Returns the selected sub-shapes indices
   */
   GEOM::ListOfLong GetSelection();
-
+  /*!
+  *  \brief Returns the old selected sub-shapes indices (to restore on break-link)
+  */
+  GEOM::ListOfLong GetSelectionOld();
 
   /*!
   *  \brief Sets the internal entry of the object, common for all objects in SHAPER-STUDY

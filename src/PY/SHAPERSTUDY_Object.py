@@ -302,7 +302,7 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object,
               aDeadGroupEntry = "dead" + str(anIndex) + "_" + aGroup.GetEntry()
               aDeadGroup.SetEntry(aDeadGroupEntry)
               aDeadGroup.SetSelectionType(aGroup.GetSelectionType())
-              aDeadGroup.SetSelection(aGroup.GetSelection())
+              aDeadGroup.SetSelection(aGroup.GetSelectionOld())
               if isinstance(aGroup, SHAPERSTUDY_ORB._objref_SHAPER_Field): # additional field data
                 aDeadGroup.SetValuesType(aGroup.GetValuesType())
                 aDeadGroup.SetSteps(aGroup.GetSteps())
@@ -344,6 +344,8 @@ class SHAPERSTUDY_Group(SHAPERSTUDY_ORB__POA.SHAPER_Group, SHAPERSTUDY_Object):
         SHAPERSTUDY_GenericObject.__init__(self)
         self.seltype = None
         self.selection = []
+        self.selectionTick = -2 # tick of the main shape when the current selection is set
+        self.selectionOld = [] # keep selection for breaking link
         self.SO = None
         self.data = None
         self.entry = ""
@@ -366,15 +368,33 @@ class SHAPERSTUDY_Group(SHAPERSTUDY_ORB__POA.SHAPER_Group, SHAPERSTUDY_Object):
         """
         Sets what is returned in the GEOM_IGroupOperations::GetObjects
         """
-        #self.data = None # nullify the cashed shape when selection is changed
-        #print("Set selection for the group " + str(self.entry) + " = " + str(theSelection))
-        self.selection = theSelection
+        aTick = -2
+        if self.SO:
+          aMainShape = self.GetMainShape()
+          if aMainShape:
+            aTick = aMainShape.GetTick()
+        if aTick != self.selectionTick or aTick == -2: # the last condition is for load: restore old and new
+          self.selectionOld = self.selection
+          self.selection = theSelection
+          self.selectionTick = aTick
+          #print("Set selection " + self.entry + " old = " + str(self.selectionOld) + " new = " + str(self.selection) + " tick = " + str(aTick))
+        else:
+          self.selection = theSelection
+          #print("Set selection " + self.entry + " tick = " + str(aTick))
+        pass
 
     def GetSelection(self):
         """
         Returns the selected sub-shapes indices
         """
         return self.selection
+
+    def GetSelectionOld(self):
+        """
+        Returns the previously selected sub-shapes indices
+        """
+        print("get selection OLD " + self.entry + " old = " + str(self.selectionOld) + " new = " + str(self.selection))
+        return self.selectionOld
 
     def IsMainShape( self ):
         """
@@ -423,6 +443,8 @@ class SHAPERSTUDY_Field(SHAPERSTUDY_ORB__POA.SHAPER_Field, SHAPERSTUDY_Group):
         SHAPERSTUDY_GenericObject.__init__(self)
         self.seltype = None
         self.selection = []
+        self.selectionTick = -2 # tick of the main shape when the current selection is set
+        self.selectionOld = [] # keep selection for breaking link
         self.SO = None
         self.data = None
         self.entry = None
