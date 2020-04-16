@@ -41,7 +41,8 @@ site:
 
   <http://www.salome-platform.org/downloads/license/>
 
-Note: SALOME SHAPERSTUDY needs SALOME KERNEL and SALOME GUI as pre-requisites.
+Note: SALOME SHAPERSTUDY requires SALOME KERNEL, SALOME Geometry and SALOME Shaper
+as pre-requisites.
 
 ------------------
 Basic Installation
