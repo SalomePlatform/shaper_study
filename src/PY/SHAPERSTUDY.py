@@ -298,7 +298,7 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
               anObj = SHAPERSTUDY_Object.SHAPERSTUDY_Group()
               if len(aSub):
                 aSel = aSub.split(";")
-                if len(aSel) > 1:
+                if len(aSel) > 1 and len(aSel[1]):
                   anObj.SetSelection([int(anI) for anI in aSel[1].split(' ')]) # old selection
                 anObj.SetSelection([int(anI) for anI in aSel[0].split(' ')])
               anObj.SetSelectionType(int(aNewShapeStream))
