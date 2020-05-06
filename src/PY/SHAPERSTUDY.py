@@ -339,6 +339,7 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
                 for aValIndex in range(aNumValsInStep):
                   aVals.append(float(aParams[aStepStartIndex + aValIndex + 1]))
                 anObj.AddFieldStep(aStampId, aStepNum + 1, aVals)
+              anObj.SetTick(-3)
             else: # shape object by BRep in the stream: set old first then new
               anObj = SHAPERSTUDY_Object.SHAPERSTUDY_Object()
               if len(aSub):
@@ -371,7 +372,15 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         if persistentID in __entry2IOR__:
           aRes = __entry2IOR__[persistentID]
           if len(aRes): # set SO from the study, the sobject param is temporary, don't store it
-            salome.orb.string_to_object(aRes).SetSO(getStudy().FindObjectID(sobject.GetID()))
+             aSO = getStudy().FindObjectID(sobject.GetID())
+             anObj = salome.orb.string_to_object(aRes)
+             anObj.SetSO(aSO)
+             # restore tick of the sub-object
+             anIOR = aSO.GetFather().GetIOR()
+             if len(anIOR):
+               anFatherObj = salome.orb.string_to_object(anIOR)
+               if anFatherObj and isinstance(anFatherObj, SHAPERSTUDY_ORB._objref_SHAPER_Object):
+                 anObj.SetTick(anFatherObj.GetTick())
           return aRes
         return ""
     

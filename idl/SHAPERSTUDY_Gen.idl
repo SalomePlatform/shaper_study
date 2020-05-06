@@ -94,6 +94,12 @@ interface SHAPER_Group : SHAPER_Object
   *  \brief Returns the old selected sub-shapes indices (to restore on break-link)
   */
   GEOM::ListOfLong GetSelectionOld();
+
+  /*!
+  *  \brief Sets value of a modification counter.
+  */
+  void SetTick( in long theValue );
+
 };
 
 interface Gen : GEOM::GEOM_Gen

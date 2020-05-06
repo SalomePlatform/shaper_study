@@ -370,7 +370,7 @@ class SHAPERSTUDY_Group(SHAPERSTUDY_ORB__POA.SHAPER_Group, SHAPERSTUDY_Object):
           aMainShape = self.GetMainShape()
           if aMainShape:
             aTick = aMainShape.GetTick()
-        if aTick != self.selectionTick or aTick == -2: # the last condition is for load: restore old and new
+        if aTick != self.selectionTick or aTick == -2:
           self.selectionOld = self.selection
           self.selection = theSelection
           self.selectionTick = aTick
@@ -390,7 +390,7 @@ class SHAPERSTUDY_Group(SHAPERSTUDY_ORB__POA.SHAPER_Group, SHAPERSTUDY_Object):
         """
         Returns the previously selected sub-shapes indices
         """
-        print("get selection OLD " + self.entry + " old = " + str(self.selectionOld) + " new = " + str(self.selection))
+        #print("get selection OLD " + self.entry + " old = " + str(self.selectionOld) + " new = " + str(self.selection))
         return self.selectionOld
 
     def IsMainShape( self ):
@@ -431,6 +431,19 @@ class SHAPERSTUDY_Group(SHAPERSTUDY_ORB__POA.SHAPER_Group, SHAPERSTUDY_Object):
         return GEOM.COMPOUND;
 
     pass
+
+    def GetTick( self ):
+        """
+        Get value of a modification counter of the group
+        """
+        return self.selectionTick
+
+    def SetTick( self, theValue ):
+        """
+        Sets value of a modification counter of the group
+        """
+        #print("Set tick " + self.entry + " tick = " + str(theValue))
+        self.selectionTick = theValue
 
 class SHAPERSTUDY_Field(SHAPERSTUDY_ORB__POA.SHAPER_Field, SHAPERSTUDY_Group):
     """
