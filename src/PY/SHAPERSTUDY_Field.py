@@ -58,6 +58,13 @@ class SHAPERSTUDY_Field(SHAPERSTUDY_ORB__POA.Field):
         """
         return -1
 
+    ### unnecessary methods that can be accidentally called from any module
+    def AddStep(self, *args): return 
+    def RemoveStep(self, *args): return 
+    def CountSteps(self, *args): return 0
+    def GetStep(self, *args): return 0
+    def GetArraySize(self, *args): return 0
+
     pass
 
 
