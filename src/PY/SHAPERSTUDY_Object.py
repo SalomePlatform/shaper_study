@@ -330,6 +330,22 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object,
         if not self.data:
           self.data = StudyData_Swig.StudyData_Object()
         self.data.SetShapeByPointer(theShape)
+        return
+
+    ### unnecessary methods that can be accidentally called from any module
+    def GetTopologyType(self, *args): return GEOM.SHAPE
+    def GetMinShapeType(self, *args): return GEOM.SHAPE
+    def GetMaxShapeType(self, *args): return GEOM.SHAPE
+    def GetSubShapeName(self, *args): return ""
+    def SetColor(self, *args): return
+    def GetColor(self, *args): import SALOMEDS; return SALOMEDS.Color( 0,0,0 )
+    def SetAutoColor(self, *args): return 
+    def GetAutoColor(self, *args): return False
+    def SetMarkerStd(self, *args): return 
+    def SetMarkerTexture(self, *args): return 
+    def GetMarkerType(self, *args): return GEOM.MT_NONE
+    def GetMarkerSize(self, *args): return GEOM.MS_NONE
+    def GetMarkerTexture(self, *args): return 0
 
     pass
 
@@ -633,3 +649,4 @@ class SHAPER_BoolFieldStep(SHAPERSTUDY_ORB__POA.SHAPER_BoolFieldStep, SHAPER_Fie
         return aResult
 
     pass
+

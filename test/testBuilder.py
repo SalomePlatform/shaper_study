@@ -35,7 +35,7 @@ anExportFeature = Part_1_doc.addFeature("PublishToStudy")
 model.end()
 
 
-face = salome.myStudy.FindObjectByPath("/ShaperStudy/Face_1_1").GetObject()
+face = salome.myStudy.FindObjectByPath("/ShaperResults/Face_1_1").GetObject()
 
 shaper = face.GetGen()
 print(shaper.ComponentDataType())
@@ -93,6 +93,24 @@ smeshBuilder.AssureGeomPublished( meshOnFace, ee[0] )
 #GetVertexByIndex()
 algo = meshOnFace.Segment()
 l = algo.ReversedEdgeIndices([(ee[0],vv[0])])
-    
+
+
+### unnecessary methods that can be accidentally called from any module
+import SALOMEDS
+face.GetTopologyType()
+face.GetMinShapeType()
+face.GetMaxShapeType()
+face.GetSubShapeName(1)
+face.SetColor(SALOMEDS.Color( 0,0,0 ))
+face.GetColor()
+face.SetAutoColor(0)
+face.GetAutoColor()
+face.SetMarkerStd(GEOM.MT_NONE, GEOM.MS_NONE)
+face.SetMarkerTexture(0)
+face.GetMarkerType()
+face.GetMarkerSize()
+face.GetMarkerTexture()
+
+
 if salome.sg.hasDesktop():
   salome.sg.updateObjBrowser()
