@@ -66,9 +66,9 @@ void StudyData_Object::updateShape(const std::string theFile)
   if (myStream == theFile) { // absolutely identical shapes, no need to store
     return;
   }
-  size_t aDelta = myStream.size() - theFile.size();
+  long aDelta = (long)myStream.size() - (long)theFile.size();
   aDelta = aDelta < 0 ? -aDelta : aDelta;
-  size_t aSum = myStream.size() + theFile.size();
+  long aSum = (long)myStream.size() + (long)theFile.size();
   if (double(aDelta) / aSum < 0.05) { // size-difference is less than 10%
     // check numbers have the minimal differnce
     std::istringstream aMyStr(myStream);
