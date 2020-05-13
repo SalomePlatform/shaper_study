@@ -485,7 +485,12 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
             aShapeStr = aShapeVar + ", "
             for aGName in aGroupVarNames:
               aShapeStr += aGName + ", "
-            aShapeStr += "= SHAPERSTUDY.shape(" + self.GetShaperEntry(aShapeObj) +")"
+            aShaperEntry = self.GetShaperEntry(aShapeObj)
+            aShapeStr += "= SHAPERSTUDY.shape(" + aShaperEntry +")"
+            # 18884 : comment the line with dead shapes for now
+            if aShaperEntry.startswith("\"dead"):
+              script.append("# This shape does not exist among the SHAPER results; if it is referenced by SMESH, this may cause an error")
+              aShapeStr = "# " + aShapeStr
             script.append(aShapeStr)
             # dump also dead-shapes with groups and fields in the XAO format
             aRes, aHistSO = aShapeObj.GetSO().FindSubObject(10000) # the History folder
