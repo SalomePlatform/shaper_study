@@ -414,6 +414,33 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
           return "model.featureStringId(" + __entry2DumpName__[anEntry] + anArg + ")"
         return "\"" + theShapeObj.GetEntry() + "\""
 
+    def OrderGroups(self, theStudy, theStartSO, theIsGroup):
+        """
+        An internal method for returning sub-groups or sub-fields in a correct order basing on their IDs
+        """
+        aResult = []
+        anIter = theStudy.NewChildIterator(theStartSO)
+        anOrder = {} # entry to object
+        while anIter.More():
+          anSO = anIter.Value()
+          anIter.Next()
+          anIOR = anSO.GetIOR()
+          if len(anIOR):
+            anObj = salome.orb.string_to_object(anIOR)
+            if (theIsGroup and isinstance(anObj, SHAPERSTUDY_ORB._objref_SHAPER_Group)) or \
+               (not theIsGroup and isinstance(anObj, SHAPERSTUDY_ORB._objref_SHAPER_Field)):
+              anEntry = anObj.GetEntry()
+              aSplit = anEntry.split(":")
+              if len(aSplit) > 1 and aSplit[1].isdecimal():
+                anID = int(aSplit[1])
+                anOrder[anID] = anObj
+
+        for aKey in sorted(anOrder.keys()):
+          aResult.append(anOrder[aKey])
+
+        return aResult
+
+
     def DumpPython( self, isPublished, isMultiFile ):
         """
         Dump module data to the Python script.
@@ -445,18 +472,15 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
           script.append("import SHAPERSTUDY")
           for aShapeObj in aShapeObjects:
             # check this shape also has sub-groups and fields
+            anOrderedGroups = self.OrderGroups(aStudy, aShapeObj.GetSO(), True)
+            anOrderedFields = self.OrderGroups(aStudy, aShapeObj.GetSO(), False)
+            anObjects = anOrderedGroups + anOrderedFields
+
             aGroupVarNames = []
-            aSOIter = aStudy.NewChildIterator(aShapeObj.GetSO())
-            while aSOIter.More():
-              aGroupSO = aSOIter.Value()
-              anIOR = aGroupSO.GetIOR()
-              if len(anIOR):
-                aGroup = salome.orb.string_to_object(anIOR)
-                if isinstance(aGroup, SHAPERSTUDY_ORB._objref_SHAPER_Group) or \
-                   isinstance(aGroup, SHAPERSTUDY_ORB._objref_SHAPER_Field):
-                  aGroupVarName = self.UniqueDumpName(aGroup.GetName(), aGroupSO.GetID())
-                  aGroupVarNames.append(aGroupVarName)
-              aSOIter.Next()
+            for anObj in anObjects:
+              aGroupVarName = self.UniqueDumpName(anObj.GetName(), anObj.GetSO().GetID())
+              aGroupVarNames.append(aGroupVarName)
+
             aShapeVar = self.UniqueDumpName(aShapeObj.GetName(), aShapeObj.GetSO().GetID())
             aShapeStr = aShapeVar + ", "
             for aGName in aGroupVarNames:
@@ -482,33 +506,32 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
                     anArchiveNum += 1
                     aDeadVarName = self.UniqueDumpName(aDeadShape.GetName(), aDSO.GetID())
                     aDeadString += aDeadVarName + ", "
-                    aDGroupIter = aStudy.NewChildIterator(aDSO)
 
-                    while aDGroupIter.More():
-                      aDeadGroup = aDGroupIter.Value().GetObject()
-                      if isinstance(aDeadGroup, SHAPERSTUDY_ORB._objref_SHAPER_Group):
-                        aDGroupVarName = self.UniqueDumpName(aDeadGroup.GetName(), aDGroupIter.Value().GetID())
-                        aDeadString += aDGroupVarName + ", "
-                        aGroupID = aXAO.AddGroup(aDeadGroup.GetSelectionType(), aDGroupVarName)
-                        for aSel in aDeadGroup.GetSelection():
-                          aXAO.AddGroupSelection(aGroupID, aSel)
-                      elif isinstance(aDeadGroup, SHAPERSTUDY_ORB._objref_SHAPER_Field):
-                        aDeadField = aDeadGroup
-                        aDFieldVarName = self.UniqueDumpName(aDeadField.GetName(), aDGroupIter.Value().GetID())
-                        aDeadString += aDFieldVarName + ", "
-                        aComponents = aDeadField.GetComponents()
-                        aFieldID = aXAO.AddField(aDeadField.GetValuesType(), aDeadField.GetSelectionType(), \
-                          len(aComponents), aDFieldVarName)
-                        for aCompIndex in range(len(aComponents)):
-                          aXAO.SetFieldComponent(aFieldID, aCompIndex, aComponents[aCompIndex])
-                        aSteps = aDeadField.GetSteps()
-                        for aStep in aSteps:
-                          aFieldStep = aDeadField.GetStep(aStep)
-                          aXAO.AddStep(aFieldID, aStep, aFieldStep.GetStamp())
-                          aStepVals = aFieldStep.GetValues()
-                          for aValue in aStepVals:
-                            aXAO.AddStepValue(aFieldID, aStep, str(aValue))
-                      aDGroupIter.Next()
+                    aGroups = self.OrderGroups(aStudy, aDSO, True)
+                    for aDeadGroup in aGroups:
+                      aDGroupVarName = self.UniqueDumpName(aDeadGroup.GetName(), aDeadGroup.GetSO().GetID())
+                      aDeadString += aDGroupVarName + ", "
+                      aGroupID = aXAO.AddGroup(aDeadGroup.GetSelectionType(), aDGroupVarName)
+                      for aSel in aDeadGroup.GetSelection():
+                        aXAO.AddGroupSelection(aGroupID, aSel)
+
+                    aFields = self.OrderGroups(aStudy, aDSO, False)
+                    for aDeadField in aFields:
+                      aDFieldVarName = self.UniqueDumpName(aDeadField.GetName(), aDeadField.GetSO().GetID())
+                      aDeadString += aDFieldVarName + ", "
+                      aComponents = aDeadField.GetComponents()
+                      aFieldID = aXAO.AddField(aDeadField.GetValuesType(), aDeadField.GetSelectionType(), \
+                        len(aComponents), aDFieldVarName)
+                      for aCompIndex in range(len(aComponents)):
+                        aXAO.SetFieldComponent(aFieldID, aCompIndex, aComponents[aCompIndex])
+                      aSteps = aDeadField.GetSteps()
+                      for aStep in aSteps:
+                        aFieldStep = aDeadField.GetStep(aStep)
+                        aXAO.AddStep(aFieldID, aStep, aFieldStep.GetStamp())
+                        aStepVals = aFieldStep.GetValues()
+                        for aValue in aStepVals:
+                          aXAO.AddStepValue(aFieldID, aStep, str(aValue))
+
                     aXAO.Export(anArchiveName)
                     aDeadString += " = SHAPERSTUDY.archive(" + aShapeVar + ", \"" + anArchiveName + "\")"
                     script.append(aDeadString)
