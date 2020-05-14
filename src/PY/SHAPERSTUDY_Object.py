@@ -299,7 +299,10 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object,
               aDeadGroupEntry = "dead" + str(anIndex) + "_" + aGroup.GetEntry()
               aDeadGroup.SetEntry(aDeadGroupEntry)
               aDeadGroup.SetSelectionType(aGroup.GetSelectionType())
-              aDeadGroup.SetSelection(aGroup.GetSelectionOld())
+              anOldSelection = aGroup.GetSelectionOld()
+              if len(anOldSelection) == 0: # in case there is no old modification, get the current, same as in shape
+                anOldSelection = aGroup.GetSelection()
+              aDeadGroup.SetSelection(anOldSelection)
               if isinstance(aGroup, SHAPERSTUDY_ORB._objref_SHAPER_Field): # additional field data
                 aDeadGroup.SetValuesType(aGroup.GetValuesType())
                 aDeadGroup.SetSteps(aGroup.GetSteps())
