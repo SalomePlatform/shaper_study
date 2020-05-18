@@ -389,14 +389,19 @@ class SHAPERSTUDY_Group(SHAPERSTUDY_ORB__POA.SHAPER_Group, SHAPERSTUDY_Object):
           aMainShape = self.GetMainShape()
           if aMainShape:
             aTick = aMainShape.GetTick()
-        if aTick != self.selectionTick or aTick == -2:
+        if aTick > self.selectionTick or aTick == -2:
           self.selectionOld = self.selection
           self.selection = theSelection
           self.selectionTick = aTick
           #print("Set selection " + self.entry + " old = " + str(self.selectionOld) + " new = " + str(self.selection) + " tick = " + str(aTick))
-        else:
+        elif self.selection != theSelection:
+          self.selectionOld = self.selection
           self.selection = theSelection
-          #print("Set selection " + self.entry + " tick = " + str(aTick))
+          if self.selectionTick < 0:
+            self.selectionTick = aTick + 1
+          else:
+            self.selectionTick = self.selectionTick + 1 # when the group is changed, but the main shape stays the same, make tick + 1
+          #print("Set selection " + self.entry + " old = " + str(self.selectionOld) + " new = " + str(self.selection) + " tick = " + str(self.selectionTick))
         pass
 
     def GetSelection(self):
