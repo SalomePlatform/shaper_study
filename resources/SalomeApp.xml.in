@@ -6,6 +6,7 @@
     <parameter name="documentation"   value=""/>
     <parameter name="gui"             value="no"/>
     <parameter name="version"         value="@SALOMESHAPERSTUDY_VERSION@"/>
+    <parameter name="displayer"       value="Geometry"/>
   </section>
   <section name="resources">
     <!-- Module resources -->
