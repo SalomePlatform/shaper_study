@@ -80,6 +80,7 @@ def verbose():
 ###
 __orb__ = None
 def getORB():
+    import salome
     global __orb__
     if __orb__ is None:
         __orb__ = CORBA.ORB_init( [''], CORBA.ORB_ID )
@@ -93,43 +94,32 @@ __poa__ = None
 def getPOA():
     global __poa__
     if __poa__ is None:
-        __poa__ = getORB().resolve_initial_references("RootPOA")
+        import salome
+        __poa__ = salome.orb.resolve_initial_references("RootPOA")
         pass
     return __poa__
 
 ###
 # Get naming service instance
 ###
-__naming_service__ = None
 def getNS():
-    global __naming_service__
-    if __naming_service__ is None:
-        __naming_service__ = SALOME_NamingServicePy_i( getORB() )
-        pass
-    return __naming_service__
+    import salome
+    return salome.naming_service
 
 ##
 # Get life cycle CORBA instance
 ##
-__lcc__ = None
 def getLCC():
-    global __lcc__
-    if __lcc__ is None:
-        __lcc__ = LifeCycleCORBA( getORB() )
-        pass
-    return __lcc__
+    import salome
+    return salome.lcc
 
 ##
 # Get study
 ###
-__study__ = None
+
 def getStudy():
-    global __study__
-    if __study__ is None:
-        obj = getNS().Resolve( '/Study' )
-        __study__ = obj._narrow( SALOMEDS.Study )
-        pass
-    return __study__
+    import salome
+    return salome.myStudy
 
 ###
 # Get SHAPERSTUDY engine
@@ -138,7 +128,8 @@ __engine__ = None
 def getEngine():
     global __engine__
     if __engine__ is None:
-        __engine__ = getLCC().FindOrLoad_Component( "FactoryServer", moduleName() )
+        import salome
+        __engine__ = salome.lcc.FindOrLoadComponent( "FactoryServer", moduleName() )
         pass
     return __engine__
 

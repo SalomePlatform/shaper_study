@@ -37,10 +37,7 @@ salome.salome_init(1)
 __entry2IOR__ = {}
 __entry2DumpName__ = {}
 
-class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
-                  SALOME_ComponentPy.SALOME_ComponentPy_i,
-                  SALOME_DriverPy.SALOME_DriverPy_i):
-
+class SHAPERSTUDY_Gen(SHAPERSTUDY_ORB__POA.Gen, SALOME_ComponentPy.SALOME_ComponentPy_i, SALOME_DriverPy.SALOME_DriverPy_i):
 
     ShapeType = {"AUTO":-1, "COMPOUND":0, "COMPSOLID":1, "SOLID":2, "SHELL":3, "FACE":4, "WIRE":5, "EDGE":6, "VERTEX":7, "SHAPE":8, "FLAT":9}
     
@@ -55,25 +52,6 @@ class SHAPERSTUDY(SHAPERSTUDY_ORB__POA.Gen,
         GEOM.SHAPE:"solid.png",
         GEOM.FLAT:"face.png"
         }
-
-    def __init__ ( self, orb, poa, contID, containerName, instanceName, interfaceName ):
-        """
-        Construct an instance of SHAPERSTUDY module engine.
-        The class SHAPERSTUDY implements CORBA interface Gen (see SHAPERSTUDY_Gen.idl).
-        It is inherited (via GEOM_Gen) from the classes SALOME_ComponentPy_i (implementation of
-        Engines::EngineComponent CORBA interface - SALOME component) and SALOME_DriverPy_i
-        (implementation of SALOMEDS::Driver CORBA interface - SALOME module's engine).
-        """
-        global __entry2IOR__, __entry2DumpName__
-        __entry2IOR__.clear()
-        __entry2DumpName__.clear()
-        SALOME_ComponentPy.SALOME_ComponentPy_i.__init__(self, orb, poa,
-                    contID, containerName, instanceName, interfaceName, False)
-        SALOME_DriverPy.SALOME_DriverPy_i.__init__(self, interfaceName)
-        #
-        #self._naming_service = SALOME_ComponentPy.SALOME_NamingServicePy_i( self._orb )
-        #
-        pass
 
     def FindOrCreateShape( self, theInternalEntry ):
         """
@@ -759,3 +737,34 @@ def breakLinkForSubElements(theMainShapeSO, theDeadShape):
               aBuilder.Addreference(aSubSO, aDeadSubSO)
           aDeadIter.Next()
   pass
+
+class SHAPERSTUDY(SHAPERSTUDY_Gen, SHAPERSTUDY_ORB__POA.Gen, SALOME_ComponentPy.SALOME_ComponentPy_i, SALOME_DriverPy.SALOME_DriverPy_i):
+    """
+    Implementation with naming_service server.
+    """
+    def __init__ ( self, orb, poa, contID, containerName, instanceName, interfaceName ):
+        """
+        Construct an instance of SHAPERSTUDY module engine.
+        The class SHAPERSTUDY implements CORBA interface Gen (see SHAPERSTUDY_Gen.idl).
+        It is inherited (via GEOM_Gen) from the classes SALOME_ComponentPy_i (implementation of
+        Engines::EngineComponent CORBA interface - SALOME component) and SALOME_DriverPy_i
+        (implementation of SALOMEDS::Driver CORBA interface - SALOME module's engine).
+        """
+        global __entry2IOR__, __entry2DumpName__
+        __entry2IOR__.clear()
+        __entry2DumpName__.clear()
+        SALOME_ComponentPy.SALOME_ComponentPy_i.__init__(self, orb, poa, contID, containerName, instanceName, interfaceName, False)
+        SALOME_DriverPy.SALOME_DriverPy_i.__init__(self, interfaceName)
+        pass
+
+class SHAPERSTUDY_No_Session(SHAPERSTUDY_Gen, SHAPERSTUDY_ORB__POA.Gen, SALOME_ComponentPy.SALOME_ComponentPy_Gen_i, SALOME_DriverPy.SALOME_DriverPy_i):
+    """
+    Implementation without naming_service server.
+    """
+    def __init__ ( self, orb, poa, contID, containerName, instanceName, interfaceName ):
+        global __entry2IOR__, __entry2DumpName__
+        __entry2IOR__.clear()
+        __entry2DumpName__.clear()
+        SALOME_ComponentPy.SALOME_ComponentPy_Gen_i.__init__(self, orb, poa, contID, containerName, instanceName, interfaceName, False)
+        SALOME_DriverPy.SALOME_DriverPy_i.__init__(self, interfaceName)
+        pass
