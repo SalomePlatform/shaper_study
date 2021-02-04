@@ -1,4 +1,5 @@
-# Copyright (C) 2019-2020  CEA/DEN, EDF R&D
+#  -*- coding: iso-8859-1 -*-
+# Copyright (C) 2021  CEA/DEN, EDF R&D, OPEN CASCADE
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -17,21 +18,23 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-##
-# Common packages
-##
-SET(SUBDIRS_COMMON
-  StudyData
-  SWIG
-  PY
-  SalomeSessionless
-)
-
-SET(SUBDIRS
-  ${SUBDIRS_COMMON}
-)
-
-FOREACH(dir ${SUBDIRS})
- ADD_SUBDIRECTORY(${dir})
-ENDFOREACH(dir ${SUBDIRS})
-            
+def buildInstance(orb):
+    from SHAPERSTUDY import SHAPERSTUDY_No_Session
+    from SALOME_ContainerPy import SALOME_ContainerPy_Gen_i
+    import PortableServer
+    import KernelServices
+    obj = orb.resolve_initial_references("RootPOA")
+    poa = obj._narrow(PortableServer.POA)
+    pman = poa._get_the_POAManager()
+    #
+    cont = SALOME_ContainerPy_Gen_i(orb,poa,"FactoryServer")
+    conId = poa.activate_object(cont)
+    conObj = poa.id_to_reference(conId)
+    #
+    pman.activate()
+    #
+    compoName = "SHAPERSTUDY"
+    servant = SHAPERSTUDY_No_Session(orb,poa,conObj,"FactoryServer","SHAPERSTUDY_inst_1",compoName)
+    ret = servant.getCorbaRef()
+    KernelServices.RegisterCompo(compoName,ret)
+    return ret, orb

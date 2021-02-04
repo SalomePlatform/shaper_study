@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2020  CEA/DEN, EDF R&D
+# Copyright (C) 2021  CEA/DEN, EDF R&D, OPEN CASCADE
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -17,21 +17,8 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-##
-# Common packages
-##
-SET(SUBDIRS_COMMON
-  StudyData
-  SWIG
-  PY
-  SalomeSessionless
+SET(_bin_SCRIPTS
+  SHAPERSTUDY_SalomeSessionless.py
 )
 
-SET(SUBDIRS
-  ${SUBDIRS_COMMON}
-)
-
-FOREACH(dir ${SUBDIRS})
- ADD_SUBDIRECTORY(${dir})
-ENDFOREACH(dir ${SUBDIRS})
-            
+SALOME_INSTALL_SCRIPTS("${_bin_SCRIPTS}" ${SALOME_INSTALL_PYTHON} DEF_PERMS)
