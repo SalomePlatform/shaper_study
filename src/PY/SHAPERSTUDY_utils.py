@@ -81,6 +81,7 @@ def verbose():
 __orb__ = None
 def getORB():
     import salome
+    salome.salome_init()
     global __orb__
     if __orb__ is None:
         __orb__ = CORBA.ORB_init( [''], CORBA.ORB_ID )
@@ -95,6 +96,7 @@ def getPOA():
     global __poa__
     if __poa__ is None:
         import salome
+        salome.salome_init()
         __poa__ = salome.orb.resolve_initial_references("RootPOA")
         pass
     return __poa__
@@ -104,6 +106,7 @@ def getPOA():
 ###
 def getNS():
     import salome
+    salome.salome_init()
     return salome.naming_service
 
 ##
@@ -111,6 +114,7 @@ def getNS():
 ##
 def getLCC():
     import salome
+    salome.salome_init()
     return salome.lcc
 
 ##
@@ -119,6 +123,7 @@ def getLCC():
 
 def getStudy():
     import salome
+    salome.salome_init()
     return salome.myStudy
 
 ###
@@ -129,6 +134,7 @@ def getEngine():
     global __engine__
     if __engine__ is None:
         import salome
+        salome.salome_init()
         __engine__ = salome.lcc.FindOrLoadComponent( "FactoryServer", moduleName() )
         pass
     return __engine__
