@@ -280,7 +280,9 @@ class SHAPERSTUDY_IGroupOperations(SHAPERSTUDY_ORB__POA.IGroupOperations,
     def FindGroup(self, theOwner, theEntry):
         """
         Searches existing group of theOwner shape by the entry. Returns NULL if can not find.
-        """
+        """       
+        if not hasattr(theOwner, "GetSO"): # only SHAPERSTUDY objects are allowed
+          return None
         aStudy = getStudy()
         anIter = aStudy.NewChildIterator(theOwner.GetSO())
         while anIter.More():
@@ -321,6 +323,8 @@ class SHAPERSTUDY_IGroupOperations(SHAPERSTUDY_ORB__POA.IGroupOperations,
         """
         Returns a main shape associated with the group
         """
+        if not hasattr(theGroup, "GetSO"): # only SHAPERSTUDY objects are allowed
+          return None
         aSO = theGroup.GetSO()
         if not aSO:
             return None
@@ -373,6 +377,8 @@ class SHAPERSTUDY_IFieldOperations(SHAPERSTUDY_ORB__POA.IFieldOperations,
         """
         Searches existing field of theOwner shape by the entry. Returns NULL if can not find.
         """
+        if not hasattr(theOwner, "GetSO"): # only SHAPERSTUDY objects are allowed
+          return None
         aStudy = getStudy()
         anIter = aStudy.NewChildIterator(theOwner.GetSO())
         while anIter.More():
@@ -389,6 +395,8 @@ class SHAPERSTUDY_IFieldOperations(SHAPERSTUDY_ORB__POA.IFieldOperations,
         """
         Returns all fields on a shape
         """
+        if not hasattr(shape, "GetSO"): # only SHAPERSTUDY objects are allowed
+          return []
         aResList = []
         aStudy = getStudy()
         anIter = aStudy.NewChildIterator(shape.GetSO())
