@@ -24,7 +24,6 @@ SET(SUBDIRS_COMMON
   StudyData
   SWIG
   PY
-  SalomeSessionless
 )
 
 SET(SUBDIRS
