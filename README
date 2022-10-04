@@ -6,7 +6,7 @@ SALOME SHAPERSTUDY module is a SALOME module, providing SHAPER -> SMESH connecti
 
 For more information about SALOME platform please visit the SALOME web site:
 
-  <http://www.salome-platform.org/>
+  <https://www.salome-platform.org/>
 
 =======
 License
@@ -14,10 +14,6 @@ License
 
 SALOME platform is distributed under the GNU Lesser General Public License.
 See COPYING file for more details.
-
-Also, additional information can be found at SALOME platform web site:
-
-  <http://www.salome-platform.org/downloads/license/>
 
 ============
 Installation
@@ -35,11 +31,7 @@ site:
 
 * Check Release Notes and Software Requirements of the latest SALOME release at
 
-  <http://www.salome-platform.org/downloads/current-version/>
-
-* Pre-requisites page at SALOME web site:
-
-  <http://www.salome-platform.org/downloads/license/>
+  <https://www.salome-platform.org/?page_id=15/>
 
 Note: SALOME SHAPERSTUDY requires SALOME KERNEL, SALOME Geometry and SALOME Shaper
 as pre-requisites.
