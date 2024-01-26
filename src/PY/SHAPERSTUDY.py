@@ -32,7 +32,7 @@ import SMESH
 import StudyData_Swig
 
 # for unit tests correct execution
-salome.salome_init(1)
+salome.salome_init(embedded=True)
 
 __entry2IOR__ = {}
 __entry2DumpName__ = {}
