@@ -26,6 +26,20 @@ SET(SHAPERSTUDY_RESOURCES_FILES
     solid.png
     vertex.png
     wire.png
+    compsolid_field.png
+    vertex_field.png
+    edge_field.png
+    face_field.png
+    shell_field.png
+    solid_field.png
+    wire_field.png
+    compsolid_dead.png
+    vertex_dead.png
+    edge_dead.png
+    face_dead.png
+    shell_dead.png
+    solid_dead.png
+    wire_dead.png
 )
 
 INSTALL(FILES ${SHAPERSTUDY_RESOURCES_FILES} DESTINATION ${SALOME_SHAPERSTUDY_INSTALL_RES_DATA})

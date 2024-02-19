@@ -52,6 +52,30 @@ class SHAPERSTUDY_Gen(SHAPERSTUDY_ORB__POA.Gen, SALOME_ComponentPy.SALOME_Compon
         GEOM.SHAPE:"solid.png",
         GEOM.FLAT:"face.png"
         }
+    
+    ShaperFieldIcons = {GEOM.COMPOUND:"compsolid_field.png",
+        GEOM.COMPSOLID:"compsolid_field.png",
+        GEOM.SOLID:"solid_field.png",
+        GEOM.SHELL:"shell_field.png",
+        GEOM.FACE:"face_field.png",
+        GEOM.WIRE:"wire_field.png",
+        GEOM.EDGE:"edge_field.png",
+        GEOM.VERTEX:"vertex_field.png",
+        GEOM.SHAPE:"solid_field.png",
+        GEOM.FLAT:"face_field.png"
+        }
+    
+    ShaperDeadObjectIcons = {GEOM.COMPOUND:"compsolid_dead.png",
+        GEOM.COMPSOLID:"compsolid_dead.png",
+        GEOM.SOLID:"solid_dead.png",
+        GEOM.SHELL:"shell_dead.png",
+        GEOM.FACE:"face_dead.png",
+        GEOM.WIRE:"wire_dead.png",
+        GEOM.EDGE:"edge_dead.png",
+        GEOM.VERTEX:"vertex_dead.png",
+        GEOM.SHAPE:"solid_dead.png",
+        GEOM.FLAT:"face_dead.png"
+        }
 
     def FindOrCreateShape( self, theInternalEntry ):
         """
@@ -69,7 +93,6 @@ class SHAPERSTUDY_Gen(SHAPERSTUDY_ORB__POA.Gen, SALOME_ComponentPy.SALOME_Compon
               if anObj.GetEntry() == theInternalEntry:
                 return anObj
           aSOIter.Next()
-
         aShapeObj = SHAPERSTUDY_Object.SHAPERSTUDY_Object()
         aShapeObj.SetEntry(theInternalEntry)
         return aShapeObj._this()
@@ -84,15 +107,17 @@ class SHAPERSTUDY_Gen(SHAPERSTUDY_ORB__POA.Gen, SALOME_ComponentPy.SALOME_Compon
             return None # object not existing in shaper
         aStudy = getStudy()
         aBuilder = aStudy.NewBuilder()
-        isGroup = theObject.GetType() == 37 or theObject.GetType() == 52
+        isGroupOrField = theObject.GetType() == 37 or theObject.GetType() == 52
+        isField = theObject.GetType() == 52
+
         if not theFather:
-          if isGroup:
+          if isGroupOrField:
             return None # Group may be added only under the shape-father
           theFatherSO = findOrCreateComponent()
         else:
           theFatherSO = theFather.GetSO()
         aResultSO = None
-        if isGroup:
+        if isGroupOrField:
           aTag = 2
           anIter = aStudy.NewChildIterator(theFatherSO)
           while anIter.More():
@@ -107,28 +132,54 @@ class SHAPERSTUDY_Gen(SHAPERSTUDY_ORB__POA.Gen, SALOME_ComponentPy.SALOME_Compon
             aTag += 1
           aResultSO = aBuilder.NewObjectToTag(theFatherSO, aTag)
         else:
-          aResultSO = aBuilder.NewObject(theFatherSO);
+          aResultSO = aBuilder.NewObject(theFatherSO)
         aResultSO.SetAttrString("AttributeName", theName)
         if theObject is not None:
             anIOR = salome.orb.object_to_string(theObject)
             aResultSO.SetAttrString("AttributeIOR", anIOR)
             theObject.SetSO(aResultSO)
-          
             aAttr = aBuilder.FindOrCreateAttribute(aResultSO, "AttributePixMap")
             aPixmap = aAttr._narrow(salome.SALOMEDS.AttributePixMap)
             aType = 0
-            if isGroup:
+            if isGroupOrField:
               aType = SHAPERSTUDY_Object.__shape_types__[theObject.GetSelectionType()]
             else:
               aType = theObject.GetShapeType()
-            aPixmap.SetPixMap(self.ShaperIcons[aType])
+
+            if isField:
+              aPixmap.SetPixMap(self.ShaperFieldIcons[aType])
+            else:
+              aPixmap.SetPixMap(self.ShaperIcons[aType])
             
         # add a red-reference that means that this is an active reference to SHAPER result
-        if not isGroup:
+        if not isGroupOrField:
           aSub = aBuilder.NewObjectToTag(aResultSO, 1)
           aBuilder.Addreference(aSub, aResultSO)
 
         return aResultSO
+
+    def SetDeadPixmapToDeadObject( self, theObject):
+      if not theObject.GetEntry():
+        return None # object not existing in shaper
+      
+      aStudy = getStudy()
+      aBuilder = aStudy.NewBuilder()
+
+      aAttr = aBuilder.FindOrCreateAttribute(theObject.GetSO(), "AttributeTextColor")
+      aTextColor = aAttr._narrow(salome.SALOMEDS.AttributeTextColor)
+      aTextColor.SetTextColor(salome.SALOMEDS.Color(155, 155, 155))
+
+      aAttr = aBuilder.FindOrCreateAttribute(theObject.GetSO(), "AttributePixMap")
+      aPixmap = aAttr._narrow(salome.SALOMEDS.AttributePixMap)
+      aType = 0
+      isGroupOrField = theObject.GetType() == 37 or theObject.GetType() == 52
+      if isGroupOrField:
+        aType = SHAPERSTUDY_Object.__shape_types__[theObject.GetSelectionType()]
+      else:
+        aType = theObject.GetShapeType()
+
+      aPixmap.SetPixMap(self.ShaperDeadObjectIcons[aType])
+      return
 
     def StoreVariableName(self, theEntry, theVarName):
         """
