@@ -497,8 +497,17 @@ class SHAPERSTUDY_Gen(SHAPERSTUDY_ORB__POA.Gen, SALOME_ComponentPy.SALOME_Compon
           aRoots.Next()
         script = []
         if len(aShapeObjects):
-          script.append("model.publishToShaperStudy()")
-          script.append("import SHAPERSTUDY")
+          if isMultiFile:
+            script.append("import string, os, sys, re, inspect")
+            script.append("thisFile   = inspect.getfile( inspect.currentframe() )")
+            script.append("thisModule = os.path.splitext( os.path.basename( thisFile ))[0]")
+            script.append("sys.path.insert( 0, os.path.dirname( thisFile ))")
+            script.append("exec(\"from \"+re.sub(\"SHAPERSTUDY$\",\"SHAPER\",thisModule)+\" import *\")")
+            script.append("")
+            script.append("def RebuildData():")
+            script.append("  from salome.shaper import model")
+          script.append("  model.publishToShaperStudy()") if isMultiFile else script.append("model.publishToShaperStudy()")
+          script.append("  import SHAPERSTUDY") if isMultiFile else script.append("import SHAPERSTUDY")
           for aShapeObj in aShapeObjects:
             # check this shape also has sub-groups and fields
             anOrderedGroups = self.OrderGroups(aStudy, aShapeObj.GetSO(), True)
@@ -514,13 +523,17 @@ class SHAPERSTUDY_Gen(SHAPERSTUDY_ORB__POA.Gen, SALOME_ComponentPy.SALOME_Compon
             aShapeStr = aShapeVar + ", "
             for aGName in aGroupVarNames:
               aShapeStr += aGName + ", "
+            if isMultiFile:
+              aShapeStr = aShapeStr[:-2]
+              script.append("  global " + aShapeStr)
+              aShapeStr +=", "
             aShaperEntry = self.GetShaperEntry(aShapeObj)
             aShapeStr += "= SHAPERSTUDY.shape(" + aShaperEntry +")"
             # 18884 : comment the line with dead shapes for now
             if aShaperEntry.startswith("\"dead"):
               script.append("# This shape does not exist among the SHAPER results; if it is referenced by SMESH, this may cause an error")
               aShapeStr = "# " + aShapeStr
-            script.append(aShapeStr)
+            script.append("  " + aShapeStr)if isMultiFile else script.append(aShapeStr)
             # dump also dead-shapes with groups and fields in the XAO format
             aRes, aHistSO = aShapeObj.GetSO().FindSubObject(10000) # the History folder
             if aRes:
@@ -568,7 +581,7 @@ class SHAPERSTUDY_Gen(SHAPERSTUDY_ORB__POA.Gen, SALOME_ComponentPy.SALOME_Compon
 
                     aXAO.Export(anArchiveName)
                     aDeadString += " = SHAPERSTUDY.archive(" + aShapeVar + ", \"" + anArchiveName + "\")"
-                    script.append(aDeadString)
+                    script.append("  " + aDeadString) if isMultiFile else script.append("aDeadString")
                 aDeads.Next()
           pass
         
