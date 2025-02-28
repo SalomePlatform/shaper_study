@@ -506,8 +506,12 @@ class SHAPERSTUDY_Gen(SHAPERSTUDY_ORB__POA.Gen, SALOME_ComponentPy.SALOME_Compon
             script.append("")
             script.append("def RebuildData():")
             script.append("  from salome.shaper import model")
-          script.append("  model.publishToShaperStudy()") if isMultiFile else script.append("model.publishToShaperStudy()")
-          script.append("  import SHAPERSTUDY") if isMultiFile else script.append("import SHAPERSTUDY")
+            script.append("  model.publishToShaperStudy()")
+            script.append("  import SHAPERSTUDY")
+          else:
+            script.append("model.publishToShaperStudy()")
+            script.append("import SHAPERSTUDY")
+
           for aShapeObj in aShapeObjects:
             # check this shape also has sub-groups and fields
             anOrderedGroups = self.OrderGroups(aStudy, aShapeObj.GetSO(), True)
