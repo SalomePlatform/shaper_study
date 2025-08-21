@@ -17,17 +17,17 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-import SHAPERSTUDY_ORB__POA
-import SHAPERSTUDY_ORB
-import SALOME_ComponentPy
-import SALOME_DriverPy
-import SALOMEDS
+from salome.kernel import SHAPERSTUDY_ORB__POA
+from salome.kernel import SHAPERSTUDY_ORB
+from salome.kernel import SALOME_ComponentPy
+from salome.kernel import SALOME_DriverPy
+from salome.kernel import SALOMEDS
 from SHAPERSTUDY_utils import findOrCreateComponent, moduleName, getStudy, getORB
-import salome
+from salome.kernel import salome
 import SHAPERSTUDY_Object
 import SHAPERSTUDY_IOperations
-import GEOM
-import SMESH
+from salome.kernel import GEOM
+from salome.kernel import SMESH
 
 import StudyData_Swig
 

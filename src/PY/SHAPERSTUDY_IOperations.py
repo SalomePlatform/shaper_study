@@ -17,11 +17,11 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-import SHAPERSTUDY_ORB__POA
-import SHAPERSTUDY_ORB
+from salome.kernel import SHAPERSTUDY_ORB__POA
+from salome.kernel import SHAPERSTUDY_ORB
 import SHAPERSTUDY_Object
-import GEOM
-import salome
+from salome.kernel import GEOM
+from salome.kernel import salome
 from SHAPERSTUDY_utils import getStudy
 
 import StudyData_Swig

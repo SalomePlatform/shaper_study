@@ -41,11 +41,11 @@ __all__ = [
 
 
 from omniORB import CORBA
-from SALOME_NamingServicePy import SALOME_NamingServicePy_i
-from LifeCycleCORBA import LifeCycleCORBA
-import SALOMEDS
-import SALOMEDS_Attributes_idl
-import SHAPERSTUDY_ORB
+from salome.kernel.SALOME_NamingServicePy import SALOME_NamingServicePy_i
+from salome.kernel.LifeCycleCORBA import LifeCycleCORBA
+from salome.kernel import SALOMEDS
+from salome.kernel import SALOMEDS_Attributes_idl
+from salome.kernel import SHAPERSTUDY_ORB
 import os
    
 ###
@@ -80,7 +80,7 @@ def verbose():
 ###
 __orb__ = None
 def getORB():
-    import salome
+    from salome.kernel import salome
     salome.salome_init()
     global __orb__
     if __orb__ is None:
@@ -95,7 +95,7 @@ __poa__ = None
 def getPOA():
     global __poa__
     if __poa__ is None:
-        import salome
+        from salome.kernel import salome
         salome.salome_init()
         __poa__ = salome.orb.resolve_initial_references("RootPOA")
         pass
@@ -105,7 +105,7 @@ def getPOA():
 # Get naming service instance
 ###
 def getNS():
-    import salome
+    from salome.kernel import salome
     salome.salome_init()
     return salome.naming_service
 
@@ -113,7 +113,7 @@ def getNS():
 # Get life cycle CORBA instance
 ##
 def getLCC():
-    import salome
+    from salome.kernel import salome
     salome.salome_init()
     return salome.lcc
 
@@ -122,7 +122,7 @@ def getLCC():
 ###
 
 def getStudy():
-    import salome
+    from salome.kernel import salome
     salome.salome_init()
     return salome.myStudy
 
@@ -133,7 +133,7 @@ __engine__ = None
 def getEngine():
     global __engine__
     if __engine__ is None:
-        import salome
+        from salome.kernel import salome
         salome.salome_init()
         __engine__ = salome.lcc.FindOrLoadComponent( "FactoryServer", moduleName() )
         pass

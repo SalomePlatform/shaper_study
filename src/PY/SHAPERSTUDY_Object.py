@@ -17,11 +17,11 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-import SHAPERSTUDY_ORB
-import SHAPERSTUDY_ORB__POA
-import GEOM
+from salome.kernel import SHAPERSTUDY_ORB
+from salome.kernel import SHAPERSTUDY_ORB__POA
+from salome.kernel import GEOM
 from SHAPERSTUDY_utils import getEngine, getStudy
-import salome
+from salome.kernel import salome
 
 import StudyData_Swig
 
@@ -342,7 +342,7 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object,
     def GetSubShapeName(self, *args): return ""
     def SetColor(self, *args): return
     #def GetColor(self, *args): import SALOMEDS; return SALOMEDS.Color( 0,0,0 )
-    def GetColor(self, *args): import SALOMEDS; return SALOMEDS.Color( -1,-1,-1 )
+    def GetColor(self, *args): import salome.kernel.SALOMEDS; return salome.kernel.SALOMEDS.Color( -1,-1,-1 )
     def SetAutoColor(self, *args): return 
     def GetAutoColor(self, *args): return False
     def SetMarkerStd(self, *args): return 

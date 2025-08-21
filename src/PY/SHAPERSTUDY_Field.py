@@ -17,8 +17,8 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-import SHAPERSTUDY_ORB__POA
-import GEOM
+from salome.kernel import SHAPERSTUDY_ORB__POA
+from salome.kernel import GEOM
 
 class SHAPERSTUDY_Field(SHAPERSTUDY_ORB__POA.Field):
     """
@@ -37,6 +37,7 @@ class SHAPERSTUDY_Field(SHAPERSTUDY_ORB__POA.Field):
         """
         Returns the shape the field lies on
         """
+        #from SHAPERSTUDY_Object import SHAPERSTUDY_Object
         return SHAPERSTUDY_Object()
 
     def GetSteps( self ):
