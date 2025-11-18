@@ -37,6 +37,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <functional>
 
 static const int TopAbs_FLAT = TopAbs_SHAPE+1;
 
@@ -85,7 +86,7 @@ static std::pair<double, double> ShapeToDouble (const TopoDS_Shape& S)
 }
 
 /// Sort shapes in the list by their coordinates.
-struct CompareShapes : public std::binary_function<TopoDS_Shape, TopoDS_Shape, bool>
+struct CompareShapes : public std::function<bool(TopoDS_Shape&, TopoDS_Shape&)>
 {
   CompareShapes () {}
   bool operator() (const TopoDS_Shape& lhs, const TopoDS_Shape& rhs);
