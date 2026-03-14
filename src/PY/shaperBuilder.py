@@ -31,8 +31,8 @@
 # ======================================================================================
 
 import SHAPERSTUDY
-from salome.kernel import GEOM
-from salome.kernel import SALOME_DriverPy
+import GEOM
+import SALOME_DriverPy
 
 # Warning: geom is a singleton
 geom = None

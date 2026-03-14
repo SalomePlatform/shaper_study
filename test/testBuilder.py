@@ -5,7 +5,7 @@
 ###
 
 import sys
-from salome.kernel import salome
+import salome
 salome.salome_init()
 
 ###
@@ -28,7 +28,7 @@ model.end()
 ###
 
 import SHAPERSTUDY
-from salome.kernel import GEOM
+import GEOM
 
 model.begin()
 anExportFeature = Part_1_doc.addFeature("PublishToStudy")
@@ -96,7 +96,7 @@ l = algo.ReversedEdgeIndices([(ee[0],vv[0])])
 
 
 ### unnecessary methods that can be accidentally called from any module
-from salome.kernel import SALOMEDS
+import SALOMEDS
 face.GetTopologyType()
 face.GetMinShapeType()
 face.GetMaxShapeType()
