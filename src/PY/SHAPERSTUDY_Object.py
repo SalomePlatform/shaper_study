@@ -233,6 +233,10 @@ class SHAPERSTUDY_Object(SHAPERSTUDY_ORB__POA.SHAPER_Object,
         if theSO:
             theSO.Register() # I hold a GenericObject!
         if self.SO:
+            if theSO:
+                # Protect this object from deletion in self.SO.UnRegister()
+                # Do not protect, if new theSO is None
+                self.Register()
             self.SO.UnRegister()
         self.SO = theSO
 
