@@ -61,7 +61,11 @@ int StudyData_XAO::AddGroup(const int theSelType, const std::string theGroupName
 void StudyData_XAO::AddGroupSelection(const int theGroupID, const int theSelection)
 {
   XAO::Group* aGroup = myGroups[theGroupID];
-  aGroup->add(theSelection);
+  std::string aReferenceString = XAO::XaoUtils::intToString(theSelection);
+  XAO::Geometry* aGeometry = myExport->getGeometry();
+  int anElementID =
+    aGeometry->getElementIndexByReference(aGroup->getDimension(), aReferenceString);
+  aGroup->add(anElementID);
 }
 
 void StudyData_XAO::Export(const std::string theFileName)
@@ -155,9 +159,14 @@ int StudyData_XAO::GetGroupDimension(const int theGroupID)
 std::list<long> StudyData_XAO::GetGroupSelection(const int theGroupID)
 {
   XAO::Group* aXaoGroup = myImport->getGroup(theGroupID);
+  XAO::Geometry* aGeometry = myImport->getGeometry();
   std::list<long> aResult;
   for (int anElementIndex = 0; anElementIndex < aXaoGroup->count(); ++anElementIndex) {
-    aResult.push_back(aXaoGroup->get(anElementIndex));
+    int anElementID = aXaoGroup->get(anElementIndex);
+    std::string aReferenceString =
+      aGeometry->getElementReference(aXaoGroup->getDimension(), anElementID);
+    int aReferenceID = XAO::XaoUtils::stringToInt(aReferenceString);
+    aResult.push_back(aReferenceID);
   }
   return aResult;
 }
