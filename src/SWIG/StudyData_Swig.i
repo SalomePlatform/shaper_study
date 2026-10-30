@@ -28,6 +28,10 @@
 #include <Standard_ErrorHandler.hxx>
 #include <stdexcept>
 
+#if defined(__APPLE__)
+#include <cstring>
+#endif
+
 static PyObject* setOCCException(Standard_Failure& ex)
 {
   std::string msg(ex.DynamicType()->Name());

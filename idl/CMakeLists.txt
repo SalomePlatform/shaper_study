@@ -36,6 +36,11 @@ SET(_idl_include_dirs
 SET(_idl_link_flags
   ${KERNEL_SalomeIDLKernel}
 )
+IF(APPLE)
+  # macOS: dylibs must resolve all their symbols at link time, the
+  # SHAPERSTUDY stubs use the GEOM ones
+  LIST(APPEND _idl_link_flags ${GEOM_SalomeIDLGEOM})
+ENDIF()
 
 OMNIORB_ADD_MODULE(SalomeIDLSHAPERSTUDY "${SalomeIDLSHAPERSTUDY_IDLSOURCES}" "${_idl_include_dirs}" "${_idl_link_flags}")
 INSTALL(TARGETS SalomeIDLSHAPERSTUDY EXPORT ${PROJECT_NAME}TargetGroup DESTINATION ${SALOME_INSTALL_LIBS})

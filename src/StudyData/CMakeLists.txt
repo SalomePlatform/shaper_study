@@ -31,11 +31,25 @@ ADD_DEFINITIONS(
 )
 
 # libraries to link to
-SET(_link_LIBRARIES
-  SalomeIDLGEOM
-  ${OpenCASCADE_ModelingAlgorithms_LIBRARIES}
-  ${LIB_XAOShaper}
-)
+SET(_link_LIBRARIES)
+IF(APPLE)
+    SET(_link_LIBRARIES
+      SalomeIDLGEOM
+      ${KERNEL_SalomeIDLKernel}
+      ${OMNIORB_LIBRARIES}
+      ${OpenCASCADE_FoundationClasses_LIBRARIES}
+      ${OpenCASCADE_ModelingData_LIBRARIES}
+      ${OpenCASCADE_ModelingAlgorithms_LIBRARIES}
+      ${LIB_XAOShaper}
+    )
+ELSE()
+    SET(_link_LIBRARIES
+      SalomeIDLGEOM
+      ${OpenCASCADE_ModelingAlgorithms_LIBRARIES}
+      ${LIB_XAOShaper}
+    )
+ENDIF()
+
 
 # --- headers ---
 
@@ -63,7 +77,8 @@ ADD_LIBRARY(StudyData ${STUDYDATA_HEADERS} ${STUDYDATA_SOURCES})
 #  TARGET_COMPILE_OPTIONS(SudyData PRIVATE /bigobj) 
 #ENDIF(WIN32)
 
-TARGET_LINK_LIBRARIES(StudyData ${_link_LIBRARIES} )
+TARGET_LINK_LIBRARIES(StudyData ${_link_LIBRARIES})
+
 INSTALL(TARGETS StudyData EXPORT ${PROJECT_NAME}TargetGroup DESTINATION ${SALOME_INSTALL_LIBS})
 
 INSTALL(FILES ${STUDYDATA_HEADERS} DESTINATION ${SALOME_INSTALL_HEADERS})
